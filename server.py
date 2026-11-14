@@ -1,11 +1,11 @@
+
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
-
+import os
 
 ROOT = Path(__file__).resolve().parent
 QUIZ_FILE = ROOT / "allcode"
-
 
 class QuizHandler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
@@ -18,10 +18,13 @@ class QuizHandler(SimpleHTTPRequestHandler):
             return "text/html; charset=utf-8"
         return super().guess_type(path)
 
-
 if __name__ == "__main__":
-    print("Quiz web server starting", flush=True)
-    handler = lambda *args, **kwargs: QuizHandler(*args, directory=str(ROOT), **kwargs)
-    server = ThreadingHTTPServer(("127.0.0.1", 8000), handler)
-    print("Quiz web server ready at http://127.0.0.1:8000/", flush=True)
+    port = int(os.environ.get("PORT", 8000))
+    server = ThreadingHTTPServer(
+        ("0.0.0.0", port),
+        lambda *args, **kwargs: QuizHandler(
+            *args, directory=str(ROOT), **kwargs
+        )
+    )
+    print(f"Server running on port {port}", flush=True)
     server.serve_forever()
