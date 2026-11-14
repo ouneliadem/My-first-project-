@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Student Hub Quiz Challenge</title>
+<style>
+:root{
+  --bg:#F4F7FF; --bg-soft:#EEF2FF; --card:#FFFFFF; --line:#DEE5F3;
+  --text:#202546; --muted:#717B9A; --accent:#635BFF; --accent-ink:#4941D4;
+  --gold:#C68A1E; --teal:#139B8A; --violet:#8855D7; --rust:#E16A45;
+  --correct:#1E8E55; --wrong:#B23B2E; --radius:20px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#111526; --bg-soft:#1A2038; --card:#1A2035; --line:#303856;
+    --text:#F1F1FF; --muted:#A0A9C6; --accent:#938BFF; --accent-ink:#C7C2FF;
+    --gold:#E3B24A; --teal:#55C9BC; --violet:#A78BD6; --rust:#E2805C;
+    --correct:#4FD08A; --wrong:#F17A6D;
+    color-scheme: dark;
+  }
+}
+*{box-sizing:border-box;}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+}
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes popIn{0%{opacity:0;transform:scale(.82);}70%{transform:scale(1.05);}100%{opacity:1;transform:scale(1);}}
+@keyframes screenIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes barSheen{from{background-position:-60px 0;}to{background-position:120px 0;}}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-5deg);}50%{transform:translateY(-9px) rotate(5deg);}}
+@keyframes glow{0%,100%{box-shadow:0 12px 30px rgba(99,91,255,.1);}50%{box-shadow:0 18px 42px rgba(99,91,255,.2);}}
+@keyframes markPop{0%{opacity:0;transform:scale(.3) rotate(-18deg);}75%{transform:scale(1.16) rotate(5deg);}100%{opacity:1;transform:scale(1) rotate(0);}}
+html,body{width:100%;height:100%;overflow:hidden;}
+body{
+  width:100vw;height:100vh;height:100dvh;overflow:hidden;margin:0;background:linear-gradient(145deg,var(--bg),color-mix(in srgb,var(--accent) 7%,var(--bg)) 55%,color-mix(in srgb,var(--teal) 8%,var(--bg)));color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(circle at 8% 18%,color-mix(in srgb,var(--accent) 13%,transparent) 0 90px,transparent 91px),radial-gradient(circle at 92% 78%,color-mix(in srgb,var(--teal) 12%,transparent) 0 130px,transparent 131px);}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10;}
+.wrap{position:relative;width:100%;height:100%;min-height:0;max-width:1600px;margin:0 auto;padding:clamp(8px,1.5vh,18px) clamp(12px,2vw,32px);display:flex;flex-direction:column;overflow:hidden;}
+header{display:flex;align-items:center;gap:10px;margin-bottom:clamp(4px,1vh,10px);flex:0 0 auto;}
+.badge{
+  width:clamp(34px,6vh,52px);height:clamp(34px,6vh,52px);border-radius:clamp(10px,2vh,18px);background:linear-gradient(145deg,var(--accent),var(--violet));color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;
+  letter-spacing:0.5px;flex-shrink:0;border:2px solid color-mix(in srgb,var(--card) 50%,transparent);box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 28%,transparent);animation:float 4s ease-in-out infinite;
+}
+.brandline{display:flex;flex-direction:column;}
+.brandline .sub{font-size:clamp(9px,1.5vh,12px);color:var(--muted);letter-spacing:0.3px;}
+.brandline .main{font-size:20px;font-weight:700;}
+h1{font-size:26px;margin:0 0 6px;line-height:1.25;}
+p.lede{color:var(--muted);margin:0 0 14px;font-size:clamp(12px,1.8vh,15px);max-width:56ch;line-height:1.45;}
+.card{background:color-mix(in srgb,var(--card) 93%,transparent);backdrop-filter:blur(12px);border:1px solid color-mix(in srgb,var(--line) 75%,transparent);border-radius:var(--radius);padding:clamp(10px,1.5vh,20px);box-shadow:0 18px 50px rgba(37,48,100,.08);}
+.section-label{font-size:12px;color:var(--muted);margin:0 0 10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;}
+@media (max-width:480px){.grid{grid-template-columns:1fr;}}
+.choice{
+  border:1px solid var(--line);background:var(--bg-soft);border-radius:10px;padding:14px 16px;
+  cursor:pointer;font-size:15px;color:var(--text);text-align:left;
+  transition:border-color .15s, background .15s, transform .08s ease;
+  display:flex;align-items:center;gap:10px;
+}
+.choice:hover{border-color:var(--accent);transform:translateY(-2px);}
+.choice:active{transform:scale(.97);}
+.choice.selected{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, var(--bg-soft));font-weight:600;animation:popIn .25s ease;}
+.choice .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.diffrow{display:flex;gap:10px;margin-bottom:24px;}
+.diffrow button{
+  flex:1;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg-soft);
+  color:var(--text);font-size:14px;cursor:pointer;font-weight:600;
+  transition:transform .08s ease, border-color .15s, background .15s;
+}
+.diffrow button:active{transform:scale(.95);}
+.diffrow button.selected{border-color:var(--accent);color:var(--accent-ink);background:color-mix(in srgb, var(--accent) 14%, var(--bg-soft));animation:popIn .25s ease;}
+#gameRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,128px),1fr));grid-auto-rows:minmax(0,1fr);gap:clamp(5px,.8vw,10px);margin:0 0 clamp(5px,1vh,10px);min-height:0;flex:1;}
+#quizModeRow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:22px;}
+.game-card{min-width:0;min-height:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;text-align:left;border-radius:14px !important;padding:clamp(6px,1vh,12px) !important;animation:fadeSlideUp .4s ease both;}
+.game-card:nth-child(2){animation-delay:.06s;}
+.game-card:nth-child(3){animation-delay:.12s;}
+.game-card .game-icon{font-size:clamp(16px,2.4vh,23px);line-height:1.1;}
+.game-card .game-title{font-size:clamp(11px,1.8vh,14px);font-weight:800;line-height:1.15;}
+.game-card .game-description{font-size:clamp(9px,1.4vh,11px);line-height:1.2;color:var(--muted);font-weight:400;}
+.btn{
+  width:100%;padding:15px;border-radius:14px;border:none;background:linear-gradient(110deg,var(--accent),var(--violet));color:#fff;
+  font-size:16px;font-weight:700;cursor:pointer;margin-top:4px;transition:transform .15s ease, opacity .15s,filter .15s;box-shadow:0 8px 18px color-mix(in srgb,var(--accent) 20%,transparent);
+}
+.btn:hover:not(:disabled){filter:brightness(1.07);transform:translateY(-2px);}
+.btn:active:not(:disabled){transform:scale(.98);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);}
+.hidden{display:none !important;}
+.progress-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px;color:var(--muted);}
+.quiz-track{margin-bottom:10px;}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent-ink);}
+.timer.warning{color:var(--wrong);}
+.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:22px;}
+.bar > div{height:100%;background:var(--accent);background-image:linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);background-size:60px 100%;transition:width .35s ease; animation:barSheen 1.2s linear infinite;}
+.qtext{font-size:18px;font-weight:600;margin:0 0 18px;line-height:1.4;animation:fadeSlideUp .35s ease both;}
+.options{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+.option{
+  border:1px solid var(--line);background:var(--bg-soft);border-radius:10px;padding:14px 16px;
+  cursor:pointer;font-size:15px;color:var(--text);text-align:left;width:100%;
+  transition:transform .08s ease, border-color .15s, background .15s;
+  animation:fadeSlideUp .35s ease both;
+}
+.option:nth-child(2){animation-delay:.05s;}
+.option:nth-child(3){animation-delay:.1s;}
+.option:nth-child(4){animation-delay:.15s;}
+.option:active{transform:scale(.98);}
+.option.picked{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, var(--bg-soft));animation:popIn .2s ease;}
+.score-hero{text-align:center;padding:10px 0 20px;}
+.score-hero .num{font-size:56px;font-weight:800;line-height:1;color:var(--accent-ink);animation:popIn .5s ease both;}
+.score-hero .outof{font-size:16px;color:var(--muted);margin-top:4px;}
+.tierbadge{
+  display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:999px;
+  font-weight:700;font-size:13px;margin-top:12px;animation:popIn .45s ease .15s both;
+}
+.stats{display:flex;gap:10px;margin:18px 0 22px;}
+.stat{flex:1;background:var(--bg-soft);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:center;}
+.stat .n{font-size:22px;font-weight:700;}
+.stat .l{font-size:12px;color:var(--muted);margin-top:2px;}
+.breakdown{border-top:1px solid var(--line);padding-top:16px;margin-top:4px;}
+.row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);animation:fadeSlideUp .3s ease both;}
+.row:last-child{border-bottom:none;}
+.row .mark{width:20px;flex-shrink:0;font-weight:700;}
+.row .mark.ok{color:var(--correct);}
+.row .mark.bad{color:var(--wrong);}
+.row .body .q{font-size:14px;margin-bottom:3px;}
+.row .body .a{font-size:12.5px;color:var(--muted);}
+.ttt-card{text-align:center;max-width:500px;margin:0 auto;}
+.ttt-heading{margin:0 0 6px;font-size:26px;}
+.ttt-scoreboard{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin:22px 0 16px;}
+.ttt-player{background:var(--bg-soft);border:1px solid var(--line);border-radius:14px;padding:12px 8px;}
+.ttt-player.active{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 13%,transparent);}
+.ttt-player strong{display:block;font-size:14px;}
+.ttt-player .ttt-score{display:block;margin-top:4px;font-size:24px;font-weight:800;color:var(--accent-ink);}
+.ttt-draw{font-size:12px;color:var(--muted);}
+.ttt-status{min-height:26px;margin:12px 0 16px;font-size:16px;font-weight:700;}
+.ttt-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:min(100%,360px);margin:0 auto 20px;}
+.ttt-cell{aspect-ratio:1;border:1px solid var(--line);border-radius:18px;background:var(--bg-soft);color:var(--accent);font-size:clamp(42px,12vw,76px);font-weight:800;cursor:pointer;transition:transform .15s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease;animation:fadeSlideUp .3s ease both;}
+.ttt-cell:nth-child(2),.ttt-cell:nth-child(5),.ttt-cell:nth-child(8){animation-delay:.04s;}
+.ttt-cell:nth-child(3),.ttt-cell:nth-child(6),.ttt-cell:nth-child(9){animation-delay:.08s;}
+.ttt-cell:hover:enabled{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 9px 18px color-mix(in srgb,var(--accent) 14%,transparent);}
+.ttt-cell:disabled{cursor:default;}
+.ttt-cell.mark-o{color:var(--teal);}
+.ttt-cell.filled{animation:markPop .25s ease both;}
+.ttt-cell.win{background:color-mix(in srgb,var(--gold) 20%,var(--bg-soft));border-color:var(--gold);animation:popIn .35s ease;}
+.ttt-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ttt-actions .btn{margin:0;}
+@media (max-width:400px){.ttt-actions{grid-template-columns:1fr;}}
+.opponent-setup{margin:-4px 0 20px;animation:fadeSlideUp .25s ease both;}
+.opponent-setup .diffrow{margin-bottom:0;}
+.arcade-card{max-width:560px;margin:0 auto;text-align:center;}
+.arcade-title{margin:0 0 6px;font-size:26px;}
+.arcade-lede{margin:0 auto 18px !important;}
+.arcade-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px;}
+.arcade-actions .btn{margin:0;}
+.rps-choices{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin:24px 0;}
+.rps-choice{width:clamp(82px,22vw,116px);height:clamp(82px,22vw,116px);border:1px solid var(--line);border-radius:24px;background:var(--bg-soft);font-size:clamp(34px,9vw,48px);cursor:pointer;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease;animation:fadeSlideUp .3s ease both;}
+.rps-choice:hover{transform:translateY(-4px) rotate(-3deg);border-color:var(--accent);box-shadow:0 10px 24px color-mix(in srgb,var(--accent) 15%,transparent);}
+.rps-scores{display:flex;justify-content:center;align-items:center;gap:24px;margin:20px 0;}
+.rps-scores strong{display:block;font-size:26px;color:var(--accent-ink);}
+.memory-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;max-width:460px;margin:22px auto;}
+.memory-card{min-height:84px;border:1px solid var(--line);border-radius:14px;background:var(--bg-soft);padding:10px;color:var(--text);font-size:13px;font-weight:700;cursor:pointer;transition:transform .18s ease,background .18s ease,border-color .18s ease;overflow-wrap:anywhere;animation:fadeSlideUp .3s ease both;}
+.memory-card:hover:enabled{transform:translateY(-2px);border-color:var(--accent);}
+.memory-card.revealed{background:color-mix(in srgb,var(--accent) 12%,var(--bg-soft));border-color:var(--accent);animation:popIn .2s ease both;}
+.memory-card.matched{background:color-mix(in srgb,var(--teal) 16%,var(--bg-soft));border-color:var(--teal);cursor:default;}
+@media (max-width:390px){.memory-board{gap:7px;}.memory-card{min-height:72px;padding:7px;font-size:11px;}}
+@media (max-width:400px){.arcade-actions{grid-template-columns:1fr;}}
+.four-board{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:clamp(4px,1.4vw,9px);width:min(100%,520px);margin:18px auto 20px;padding:clamp(8px,2.4vw,14px);border-radius:20px;background:linear-gradient(145deg,var(--accent-ink),var(--accent));box-shadow:0 12px 28px color-mix(in srgb,var(--accent) 22%,transparent);}
+.four-drop{aspect-ratio:1;border:0;border-radius:50%;background:color-mix(in srgb,var(--card) 90%,transparent);color:var(--text);font-size:clamp(14px,4vw,23px);font-weight:800;cursor:pointer;transition:transform .15s ease,background .15s ease;}
+.four-drop:hover:enabled{transform:translateY(-3px);background:var(--card);}
+.four-drop:disabled{opacity:.42;cursor:default;}
+.four-slot{aspect-ratio:1;display:grid;place-items:center;border-radius:50%;background:color-mix(in srgb,var(--bg) 95%,transparent);box-shadow:inset 0 2px 6px rgba(0,0,0,.12);}
+.four-slot::after{content:"";width:78%;height:78%;border-radius:50%;background:var(--bg-soft);transition:transform .16s ease,background .16s ease;}
+.four-slot.red::after{background:#FF6682;box-shadow:0 0 13px rgba(255,102,130,.28);animation:markPop .22s ease both;}
+.four-slot.yellow::after{background:#FFD75E;box-shadow:0 0 13px rgba(255,215,94,.3);animation:markPop .22s ease both;}
+.four-slot.winner{outline:3px solid var(--gold);outline-offset:1px;}
+.four-label{font-size:12px;color:var(--muted);}
+.snake-canvas{display:block;width:min(100%,400px);height:auto;margin:18px auto;border:5px solid color-mix(in srgb,var(--accent) 25%,var(--line));border-radius:18px;background:#151B2E;box-shadow:0 12px 28px color-mix(in srgb,var(--accent) 18%,transparent);touch-action:none;}
+.snake-controls{display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(2,48px);justify-content:center;gap:6px;margin:12px auto;}
+.snake-controls button{border:1px solid var(--line);border-radius:12px;background:var(--bg-soft);color:var(--text);font-size:20px;font-weight:800;cursor:pointer;touch-action:manipulation;}
+.snake-controls button:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--bg-soft));}
+.snake-controls [data-direction="up"]{grid-column:2;grid-row:1;}
+.snake-controls [data-direction="left"]{grid-column:1;grid-row:2;}
+.snake-controls [data-direction="down"]{grid-column:2;grid-row:2;}
+.snake-controls [data-direction="right"]{grid-column:3;grid-row:2;}
+.tetris-canvas{display:block;width:min(100%,300px);height:auto;margin:18px auto;border:4px solid color-mix(in srgb,var(--accent) 25%,var(--line));border-radius:14px;background:#151B2E;box-shadow:0 12px 28px color-mix(in srgb,var(--accent) 18%,transparent);touch-action:none;}
+.tetris-controls{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:12px auto;}
+.tetris-controls button{min-width:52px;min-height:46px;border:1px solid var(--line);border-radius:12px;background:var(--bg-soft);color:var(--text);font-size:18px;font-weight:800;cursor:pointer;touch-action:manipulation;}
+.tetris-controls button:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--bg-soft));}
+.simon-board{display:grid;grid-template-columns:repeat(2,minmax(0,150px));gap:12px;justify-content:center;margin:24px auto;}
+.simon-pad{aspect-ratio:1;border:3px solid color-mix(in srgb,var(--card) 70%,transparent);border-radius:26px;cursor:pointer;opacity:.72;transition:opacity .12s ease,transform .12s ease,filter .12s ease;box-shadow:0 8px 18px rgba(20,25,50,.12);}
+.simon-pad:hover:enabled{opacity:.9;transform:scale(1.025);}
+.simon-pad:disabled{cursor:default;}
+.simon-pad[data-pad="0"]{background:#FF6078;}
+.simon-pad[data-pad="1"]{background:#45C99B;}
+.simon-pad[data-pad="2"]{background:#F8C94E;}
+.simon-pad[data-pad="3"]{background:#6688FF;}
+.simon-pad.lit{opacity:1;filter:brightness(1.3);transform:scale(1.055);box-shadow:0 0 30px currentColor;}
+@media (max-width:380px){.simon-board{grid-template-columns:repeat(2,minmax(0,125px));gap:9px;}}
+.pong-canvas{display:block;width:min(100%,480px);height:auto;margin:18px auto;border:3px solid color-mix(in srgb,var(--accent) 25%,var(--line));border-radius:16px;background:#151B2E;touch-action:none;}
+.whack-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:min(100%,390px);margin:22px auto;}
+.whack-hole{aspect-ratio:1;border:0;border-radius:50%;background:radial-gradient(circle at 50% 45%,#202842 0 52%,#12182B 54%);color:transparent;font-size:clamp(35px,10vw,58px);cursor:pointer;transition:transform .12s ease,filter .12s ease;box-shadow:inset 0 5px 12px rgba(0,0,0,.24);}
+.whack-hole:hover:enabled{transform:scale(1.035);}
+.whack-hole.mole{color:inherit;animation:popIn .16s ease both;}
+.whack-hole:disabled{cursor:default;}
+.section-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;padding:6px;border:1px solid var(--line);border-radius:16px;background:var(--bg-soft);}
+.section-tab{min-height:48px;border:0;border-radius:12px;background:transparent;color:var(--muted);font:inherit;font-weight:800;cursor:pointer;transition:background .16s ease,color .16s ease,transform .12s ease;}
+.section-tab:hover{color:var(--text);}
+.section-tab.active{background:var(--card);color:var(--accent-ink);box-shadow:0 4px 12px rgba(37,48,100,.1);animation:popIn .2s ease;}
+.section-panel{animation:screenIn .22s ease;}
+#screen-select{display:flex;flex:1;flex-direction:column;min-height:0;overflow:hidden;}
+#screen-select>h1{font-size:clamp(18px,3vh,26px);margin:0 0 2px;}
+#screen-select>.lede{margin:0 0 clamp(4px,1vh,10px);}
+#screen-select>.card{display:flex;flex:1;flex-direction:column;min-height:0;overflow:hidden;}
+#screen-select .section-tabs{flex:0 0 auto;margin:0 0 clamp(5px,1vh,10px);padding:3px;gap:4px;}
+#screen-select .section-tab{min-height:clamp(30px,5vh,42px);font-size:clamp(11px,1.8vh,14px);}
+#screen-select .section-panel{display:flex;flex:1;flex-direction:column;min-height:0;overflow:hidden;}
+#screen-select .section-panel.hidden{display:none !important;}
+#screen-select .section-label{flex:0 0 auto;margin:0 0 5px;font-size:clamp(9px,1.5vh,11px);}
+#screen-select #gamesPanel .section-label:first-child{margin-bottom:clamp(3px,.7vh,7px);}
+#screen-select #gameStartBtn{flex:0 0 auto;margin:0;padding:clamp(7px,1.2vh,12px);font-size:clamp(12px,1.8vh,15px);}
+#screen-select #quizPanel{overflow-y:auto;}
+#screen-select .diffrow{gap:6px;margin-bottom:clamp(5px,1vh,10px);}
+#screen-select .diffrow button{padding:clamp(6px,1vh,10px);font-size:clamp(11px,1.7vh,14px);}
+#screen-select #gamesPanel #gameRow{overflow:hidden;}
+.wrap>section:not(#screen-select):not(.hidden){flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.wrap>section:not(#screen-select):not(.hidden)>.card{max-height:100%;overflow:auto;overscroll-behavior:contain;}
+.wrap>section:not(#screen-select):not(.hidden) .arcade-card{width:min(100%,1200px);max-width:1200px;padding:clamp(16px,2.4vh,30px);}
+.wrap>section:not(#screen-select):not(.hidden) .ttt-card{width:min(100%,1000px);max-width:1000px;padding:clamp(16px,2.4vh,30px);}
+.wrap>section:not(#screen-select):not(.hidden) .arcade-title{font-size:clamp(26px,4vh,36px);}
+.wrap>section:not(#screen-select):not(.hidden) .arcade-lede{font-size:clamp(14px,2vh,18px);margin-bottom:clamp(10px,1.6vh,18px) !important;}
+.wrap>section:not(#screen-select):not(.hidden) .rps-scores{margin:clamp(10px,1.6vh,18px) 0;gap:clamp(20px,4vw,48px);}
+.wrap>section:not(#screen-select):not(.hidden) .rps-scores strong{font-size:clamp(22px,4vh,34px);}
+.wrap>section:not(#screen-select):not(.hidden) .ttt-status{min-height:0;margin:clamp(8px,1.2vh,14px) 0;font-size:clamp(15px,2.2vh,19px);}
+.wrap>section:not(#screen-select):not(.hidden) .arcade-actions{margin-top:clamp(12px,2vh,22px);}
+.wrap>section:not(#screen-select):not(.hidden) .arcade-actions .btn{padding:clamp(12px,1.8vh,17px);font-size:clamp(14px,2vh,17px);}
+.wrap>section:not(#screen-select):not(.hidden) .ttt-board{width:min(62vw,56vh,560px);gap:clamp(8px,1vw,12px);margin:clamp(12px,2vh,22px) auto;}
+.wrap>section:not(#screen-select):not(.hidden) .ttt-cell{font-size:clamp(52px,10vh,92px);}
+.wrap>section:not(#screen-select):not(.hidden) .ttt-scoreboard{margin:clamp(12px,2vh,22px) 0 clamp(8px,1.5vh,16px);}
+.wrap>section:not(#screen-select):not(.hidden) .four-board{width:min(82vw,68vh,760px);gap:clamp(5px,.8vw,10px);margin:clamp(10px,1.8vh,20px) auto;padding:clamp(8px,1.5vh,16px);}
+.wrap>section:not(#screen-select):not(.hidden) .four-drop{font-size:clamp(18px,3vh,27px);}
+.wrap>section:not(#screen-select):not(.hidden) .memory-board{width:min(72vw,700px);max-width:700px;gap:clamp(10px,1.5vw,18px);margin:clamp(12px,2vh,22px) auto;}
+.wrap>section:not(#screen-select):not(.hidden) .memory-card{min-height:clamp(100px,18vh,180px);font-size:clamp(15px,2vh,19px);}
+.wrap>section:not(#screen-select):not(.hidden) .rps-choice{width:clamp(100px,14vh,150px);height:clamp(100px,14vh,150px);font-size:clamp(42px,8vh,62px);}
+.wrap>section:not(#screen-select):not(.hidden) .simon-board{grid-template-columns:repeat(2,minmax(0,min(25vh,220px)));gap:clamp(12px,2vh,20px);margin:clamp(12px,2vh,22px) auto;}
+.wrap>section:not(#screen-select):not(.hidden) .whack-board{width:min(56vw,58vh,560px);max-width:560px;gap:clamp(10px,1.8vh,18px);margin:clamp(12px,2vh,22px) auto;}
+.wrap>section:not(#screen-select):not(.hidden) .snake-controls{grid-template-columns:repeat(3,clamp(58px,7vh,78px));grid-template-rows:repeat(2,clamp(50px,6.5vh,68px));gap:8px;margin:clamp(8px,1.4vh,16px) auto;}
+.wrap>section:not(#screen-select):not(.hidden) .snake-controls button{font-size:clamp(22px,3vh,30px);}
+.wrap>section:not(#screen-select):not(.hidden) .tetris-controls{gap:clamp(8px,1vw,14px);margin:clamp(8px,1.4vh,16px) auto;}
+.wrap>section:not(#screen-select):not(.hidden) .tetris-controls button{min-width:clamp(58px,7vh,78px);min-height:clamp(52px,6.5vh,68px);font-size:clamp(22px,3vh,30px);}
+.wrap>section:not(#screen-select):not(.hidden) .snake-canvas{width:min(72vh,72vw,680px);height:auto;max-height:72vh;margin:clamp(8px,1.4vh,16px) auto;}
+.wrap>section:not(#screen-select):not(.hidden) .pong-canvas{width:min(78vw,1000px);height:auto;max-height:68vh;margin:clamp(8px,1.4vh,16px) auto;}
+.wrap>section:not(#screen-select):not(.hidden) .tetris-canvas{height:min(80vh,680px);width:auto;max-width:78vw;margin:clamp(8px,1.4vh,16px) auto;}
+#screen-tetris .arcade-card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(180px,.75fr);
+  grid-template-areas:"title board" "lede board" "scores board" "status board" "controls board" "actions board";
+  align-content:center;
+  align-items:center;
+  gap:clamp(4px,1vh,12px) clamp(10px,2vw,24px);
+}
+#screen-tetris .arcade-title{grid-area:title;}
+#screen-tetris .arcade-lede{grid-area:lede;}
+#screen-tetris .rps-scores{grid-area:scores;}
+#screen-tetris #tetrisStatus{grid-area:status;}
+#screen-tetris .tetris-canvas{grid-area:board;max-height:100%;margin:0 auto;}
+#screen-tetris .tetris-controls{grid-area:controls;}
+#screen-tetris .arcade-actions{grid-area:actions;margin-top:0;}
+@media (max-width:559px) and (min-height:521px){
+  #screen-tetris .arcade-card{display:block;}
+  #screen-tetris .tetris-canvas{height:min(56vh,480px);max-width:100%;margin:clamp(8px,1.4vh,16px) auto;}
+}
+@media (max-height:520px){
+  .wrap{padding-top:4px;padding-bottom:4px;}
+  header{margin-bottom:3px;}
+  .wrap>section:not(#screen-select):not(.hidden) .arcade-card{padding:5px;}
+  .wrap>section:not(#screen-select):not(.hidden) .arcade-actions{margin-top:3px;}
+  #screen-tetris .arcade-card{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(120px,.8fr);
+    grid-template-areas:"title board" "lede board" "scores board" "status board" "controls board" "actions board";
+    align-content:center;
+    align-items:center;
+    gap:2px 12px;
+  }
+  #screen-tetris .arcade-title{grid-area:title;}
+  #screen-tetris .arcade-title{font-size:clamp(18px,4vh,24px);}
+  #screen-tetris .arcade-lede{grid-area:lede;}
+  #screen-tetris .arcade-lede{font-size:12px;line-height:1.2;margin-bottom:4px !important;}
+  #screen-tetris .rps-scores{grid-area:scores;}
+  #screen-tetris #tetrisStatus{grid-area:status;}
+  #screen-tetris .tetris-canvas{grid-area:board;height:min(78vh,400px);max-height:none;width:auto;max-width:100%;margin:0 auto;}
+  #screen-tetris .tetris-controls{grid-area:controls;gap:6px;margin:4px auto;}
+  #screen-tetris .tetris-controls button{min-width:48px;min-height:44px;}
+  #screen-tetris .arcade-actions{grid-area:actions;margin-top:3px;}
+  #screen-tetris .arcade-actions .btn{padding:8px;font-size:12px;}
+  #screen-select>h1{font-size:18px;line-height:1.1;}
+  #screen-select>.lede{font-size:11px;line-height:1.1;}
+  #screen-select .section-tabs{margin-bottom:4px;}
+  .game-card .game-description{display:none;}
+  .game-card{flex-direction:row;align-items:center;gap:6px;}
+  .wrap>section:not(#screen-select):not(.hidden) .arcade-actions .btn{padding:clamp(6px,1vh,10px);font-size:clamp(11px,1.8vh,14px);}
+}
+@media (max-width:420px){
+  .wrap{padding-left:6px;padding-right:6px;}
+  #gameRow{grid-template-columns:repeat(auto-fit,minmax(min(100%,105px),1fr));}
+  .game-card .game-title{overflow-wrap:anywhere;}
+}
+@media (min-width:900px) and (min-height:600px){
+  #gameRow{grid-template-columns:repeat(5,minmax(0,1fr));}
+  .game-card{padding:clamp(10px,1.6vh,18px) !important;}
+  .game-card .game-icon{font-size:clamp(22px,3vh,30px);}
+  .game-card .game-title{font-size:clamp(14px,2vh,18px);}
+  .game-card .game-description{font-size:clamp(11px,1.5vh,14px);}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="badge">IEEE</div>
+    <div class="brandline">
+      <span class="main">Student Hub</span>
+      <span class="sub">Quiz Challenge · IEEE Student Branch Event</span>
+    </div>
+  </header>
+
+  <section id="screen-select" style="animation:screenIn .3s ease;">
+    <h1>Welcome to Student Hub</h1>
+    <p class="lede">Choose a quiz to test your knowledge or head to the arcade and pick a game.</p>
+
+    <div class="card">
+      <div class="section-tabs" role="tablist" aria-label="Choose quizzes or games">
+        <button class="section-tab" id="quizzesTab" type="button" role="tab" aria-selected="false" aria-controls="quizPanel">🧠 Quizzes</button>
+        <button class="section-tab active" id="gamesTab" type="button" role="tab" aria-selected="true" aria-controls="gamesPanel">🎮 Games</button>
+      </div>
+
+      <div class="section-panel hidden" id="quizPanel" role="tabpanel" aria-labelledby="quizzesTab" hidden>
+        <p class="section-label">Choose a quiz</p>
+        <div class="diffrow" id="quizModeRow"></div>
+
+        <div id="quizSetup">
+          <p class="section-label">Track</p>
+          <div class="grid" id="categoryGrid"></div>
+
+          <p class="section-label">Difficulty</p>
+          <div class="diffrow" id="diffRow"></div>
+        </div>
+
+        <button class="btn" id="quizStartBtn" type="button" disabled>Start timed quiz</button>
+      </div>
+
+      <div class="section-panel" id="gamesPanel" role="tabpanel" aria-labelledby="gamesTab">
+        <p class="section-label">Pick a game</p>
+        <div class="diffrow" id="gameRow"></div>
+
+        <div id="opponentSetup" class="opponent-setup hidden">
+          <p class="section-label">Who do you want to play?</p>
+          <div class="diffrow">
+            <button type="button" class="opponent-choice" data-opponent="computer" aria-pressed="false">Play the computer</button>
+            <button type="button" class="opponent-choice" data-opponent="friend" aria-pressed="false">Play with a friend</button>
+          </div>
+        </div>
+
+        <p class="section-label hidden" id="fourPlayerSetupLabel">Two players · take turns dropping discs</p>
+
+        <button class="btn" id="gameStartBtn" type="button" disabled>Start XO Showdown</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-ttt" class="hidden" style="animation:screenIn .3s ease;">
+    <div class="card ttt-card">
+      <h1 class="ttt-heading">XO Showdown</h1>
+      <p class="lede" id="tttDescription" style="margin-left:auto;margin-right:auto;">First to line up three wins!</p>
+      <div class="ttt-scoreboard" aria-label="Match score">
+        <div class="ttt-player active" id="playerXCard"><strong id="playerXName">Player X</strong><span class="ttt-score" id="scoreX">0</span></div>
+        <div class="ttt-draw">Draws<br><strong id="scoreDraw">0</strong></div>
+        <div class="ttt-player" id="playerOCard"><strong id="playerOName">Player O</strong><span class="ttt-score" id="scoreO">0</span></div>
+      </div>
+      <p class="ttt-status" id="tttStatus" role="status" aria-live="polite">Player X's turn</p>
+      <div class="ttt-board" id="tttBoard" role="group" aria-label="Tic-Tac-Toe board">
+        <button class="ttt-cell" type="button" data-cell="0" aria-label="Square 1, empty"></button>
+        <button class="ttt-cell" type="button" data-cell="1" aria-label="Square 2, empty"></button>
+        <button class="ttt-cell" type="button" data-cell="2" aria-label="Square 3, empty"></button>
+        <button class="ttt-cell" type="button" data-cell="3" aria-label="Square 4, empty"></button>
+        <button class="ttt-cell" type="button" data-cell="4" aria-label="Square 5, empty"></button>
+        <button class="ttt-cell" type="button" data-cell="5" aria-label="Square 6, empty"></button>
+        <button class="ttt-cell" type="button" data-cell="6" aria-label="Square 7, empty"></button>
+        <button class="ttt-cell" type="button" data-cell="7" aria-label="Square 8, empty"></button>
+        <button class="ttt-cell" type="button" data-cell="8" aria-label="Square 9, empty"></button>
+      </div>
+      <div class="ttt-actions">
+        <button class="btn" id="newRoundBtn" type="button">New round</button>
+        <button class="btn ghost" id="backToGamesBtn" type="button">Back to games</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-four" class="hidden" style="animation:screenIn .3s ease;">
+    <div class="card arcade-card">
+      <h1 class="arcade-title">Four in a Row</h1>
+      <p class="lede arcade-lede">Take turns dropping discs. Connect four in a row to win!</p>
+      <div class="ttt-scoreboard" aria-label="Match score">
+        <div class="ttt-player active" id="fourRedCard"><strong>Player Red</strong><span class="ttt-score" id="fourRedScore">0</span></div>
+        <div class="ttt-draw">Draws<br><strong id="fourDrawScore">0</strong></div>
+        <div class="ttt-player" id="fourYellowCard"><strong>Player Yellow</strong><span class="ttt-score" id="fourYellowScore">0</span></div>
+      </div>
+      <p class="ttt-status" id="fourStatus" role="status" aria-live="polite">Player Red's turn</p>
+      <p class="four-label">Choose a column to drop your disc.</p>
+      <div class="four-board" id="fourBoard" role="group" aria-label="Four in a Row board">
+        <button class="four-drop" type="button" data-column="0" aria-label="Drop in column 1">↓</button>
+        <button class="four-drop" type="button" data-column="1" aria-label="Drop in column 2">↓</button>
+        <button class="four-drop" type="button" data-column="2" aria-label="Drop in column 3">↓</button>
+        <button class="four-drop" type="button" data-column="3" aria-label="Drop in column 4">↓</button>
+        <button class="four-drop" type="button" data-column="4" aria-label="Drop in column 5">↓</button>
+        <button class="four-drop" type="button" data-column="5" aria-label="Drop in column 6">↓</button>
+        <button class="four-drop" type="button" data-column="6" aria-label="Drop in column 7">↓</button>
+      </div>
+      <div class="arcade-actions">
+        <button class="btn" id="fourResetBtn" type="button">New round</button>
+        <button class="btn ghost" id="fourBackBtn" type="button">Back to games</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-rps" class="hidden" style="animation:screenIn .3s ease;">
+    <div class="card arcade-card">
+      <h1 class="arcade-title">Rock, Paper, Scissors</h1>
+      <p class="lede arcade-lede">Pick your move and see if you can beat the computer!</p>
+      <div class="rps-scores">
+        <div>You<strong id="rpsPlayerScore">0</strong></div>
+        <div>Round<strong id="rpsRound">1 / 5</strong></div>
+        <div>Computer<strong id="rpsComputerScore">0</strong></div>
+      </div>
+      <p class="ttt-status" id="rpsStatus" role="status" aria-live="polite">Choose your move!</p>
+      <div class="rps-choices" id="rpsChoices">
+        <button class="rps-choice" type="button" data-choice="rock" aria-label="Rock">✊</button>
+        <button class="rps-choice" type="button" data-choice="paper" aria-label="Paper">✋</button>
+        <button class="rps-choice" type="button" data-choice="scissors" aria-label="Scissors">✌️</button>
+      </div>
+      <div class="arcade-actions">
+        <button class="btn" id="rpsResetBtn" type="button">Play again</button>
+        <button class="btn ghost" id="rpsBackBtn" type="button">Back to games</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-memory" class="hidden" style="animation:screenIn .3s ease;">
+    <div class="card arcade-card">
+      <h1 class="arcade-title">Memory Match</h1>
+      <p class="lede arcade-lede">Flip the cards and match each tech term to its meaning.</p>
+      <p class="ttt-status" id="memoryStatus" role="status" aria-live="polite">Find all four pairs!</p>
+      <div class="memory-board" id="memoryBoard"></div>
+      <div class="arcade-actions">
+        <button class="btn" id="memoryResetBtn" type="button">Shuffle cards</button>
+        <button class="btn ghost" id="memoryBackBtn" type="button">Back to games</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-snake" class="hidden" style="animation:screenIn .3s ease;">
+    <div class="card arcade-card">
+      <h1 class="arcade-title">Snake Dash</h1>
+      <p class="lede arcade-lede">Collect the glowing snacks and avoid your tail. Use arrow keys, WASD, or the touch controls.</p>
+      <div class="rps-scores">
+        <div>Snacks<strong id="snakeScore">0</strong></div>
+        <div>Best<strong id="snakeBest">0</strong></div>
+      </div>
+      <p class="ttt-status" id="snakeStatus" role="status" aria-live="polite">Ready? Your snake moves right. Good luck!</p>
+      <canvas class="snake-canvas" id="snakeCanvas" width="400" height="400" role="img" aria-label="Snake Dash game board"></canvas>
+      <div class="snake-controls" aria-label="Snake direction controls">
+        <button type="button" data-direction="up" aria-label="Move up">↑</button>
+        <button type="button" data-direction="left" aria-label="Move left">←</button>
+        <button type="button" data-direction="down" aria-label="Move down">↓</button>
+        <button type="button" data-direction="right" aria-label="Move right">→</button>
+      </div>
+      <div class="arcade-actions">
+        <button class="btn" id="snakeRestartBtn" type="button">Play again</button>
+        <button class="btn ghost" id="snakeBackBtn" type="button">Back to games</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-tetris" class="hidden" style="animation:screenIn .3s ease;">
+    <div class="card arcade-card">
+      <h1 class="arcade-title">Tetris</h1>
+      <p class="lede arcade-lede">Fit the falling blocks together to clear lines. Use the arrow keys or touch controls.</p>
+      <div class="rps-scores">
+        <div>Score<strong id="tetrisScore">0</strong></div>
+        <div>Lines<strong id="tetrisLines">0</strong></div>
+        <div>Best<strong id="tetrisBest">0</strong></div>
+      </div>
+      <p class="ttt-status" id="tetrisStatus" role="status" aria-live="polite">Ready? Start stacking!</p>
+      <canvas class="tetris-canvas" id="tetrisCanvas" width="300" height="600" role="img" aria-label="Tetris game board"></canvas>
+      <div class="tetris-controls" aria-label="Tetris controls">
+        <button type="button" data-tetris-action="left" aria-label="Move left">←</button>
+        <button type="button" data-tetris-action="rotate" aria-label="Rotate block">↻</button>
+        <button type="button" data-tetris-action="right" aria-label="Move right">→</button>
+        <button type="button" data-tetris-action="down" aria-label="Move down">↓</button>
+        <button type="button" data-tetris-action="drop" aria-label="Drop block">⤓</button>
+      </div>
+      <div class="arcade-actions">
+        <button class="btn" id="tetrisRestartBtn" type="button">Play again</button>
+        <button class="btn ghost" id="tetrisBackBtn" type="button">Back to games</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-simon" class="hidden" style="animation:screenIn .3s ease;">
+    <div class="card arcade-card">
+      <h1 class="arcade-title">Simon Says</h1>
+      <p class="lede arcade-lede">Watch the color pattern, then repeat it. Each round adds one more color!</p>
+      <div class="rps-scores">
+        <div>Level<strong id="simonLevel">0</strong></div>
+        <div>Best<strong id="simonBest">0</strong></div>
+      </div>
+      <p class="ttt-status" id="simonStatus" role="status" aria-live="polite">Watch the pattern!</p>
+      <div class="simon-board" id="simonBoard" role="group" aria-label="Simon Says color pads">
+        <button class="simon-pad" type="button" data-pad="0" aria-label="Red" disabled></button>
+        <button class="simon-pad" type="button" data-pad="1" aria-label="Green" disabled></button>
+        <button class="simon-pad" type="button" data-pad="2" aria-label="Yellow" disabled></button>
+        <button class="simon-pad" type="button" data-pad="3" aria-label="Blue" disabled></button>
+      </div>
+      <div class="arcade-actions">
+        <button class="btn" id="simonStartBtn" type="button">Start game</button>
+        <button class="btn ghost" id="simonBackBtn" type="button">Back to games</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-pong" class="hidden" style="animation:screenIn .3s ease;">
+    <div class="card arcade-card">
+      <h1 class="arcade-title">Neon Pong</h1>
+      <p class="lede arcade-lede">Play against the computer. Move your paddle with your mouse, touch, or the up/down arrow keys. First to five wins!</p>
+      <div class="rps-scores">
+        <div>You<strong id="pongPlayerScore">0</strong></div>
+        <div>First to 5<strong id="pongMatchLabel">PONG</strong></div>
+        <div>Computer<strong id="pongComputerScore">0</strong></div>
+      </div>
+      <p class="ttt-status" id="pongStatus" role="status" aria-live="polite">Move your paddle to get ready!</p>
+      <canvas class="pong-canvas" id="pongCanvas" width="480" height="300" role="img" aria-label="Neon Pong game. Move your paddle with the mouse, touch, or arrow keys."></canvas>
+      <div class="arcade-actions">
+        <button class="btn" id="pongRestartBtn" type="button">Play again</button>
+        <button class="btn ghost" id="pongBackBtn" type="button">Back to games</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-whack" class="hidden" style="animation:screenIn .3s ease;">
+    <div class="card arcade-card">
+      <h1 class="arcade-title">Whack-a-Mole</h1>
+      <p class="lede arcade-lede">Tap the mole when it pops up! How many can you catch in 30 seconds?</p>
+      <div class="rps-scores">
+        <div>Hits<strong id="whackScore">0</strong></div>
+        <div>Time<strong id="whackTime">30</strong></div>
+        <div>Best<strong id="whackBest">0</strong></div>
+      </div>
+      <p class="ttt-status" id="whackStatus" role="status" aria-live="polite">Press Start to play!</p>
+      <div class="whack-board" id="whackBoard" role="group" aria-label="Whack-a-Mole holes">
+        <button class="whack-hole" type="button" data-hole="0" aria-label="Empty hole 1" disabled></button>
+        <button class="whack-hole" type="button" data-hole="1" aria-label="Empty hole 2" disabled></button>
+        <button class="whack-hole" type="button" data-hole="2" aria-label="Empty hole 3" disabled></button>
+        <button class="whack-hole" type="button" data-hole="3" aria-label="Empty hole 4" disabled></button>
+        <button class="whack-hole" type="button" data-hole="4" aria-label="Empty hole 5" disabled></button>
+        <button class="whack-hole" type="button" data-hole="5" aria-label="Empty hole 6" disabled></button>
+        <button class="whack-hole" type="button" data-hole="6" aria-label="Empty hole 7" disabled></button>
+        <button class="whack-hole" type="button" data-hole="7" aria-label="Empty hole 8" disabled></button>
+        <button class="whack-hole" type="button" data-hole="8" aria-label="Empty hole 9" disabled></button>
+      </div>
+      <div class="arcade-actions">
+        <button class="btn" id="whackStartBtn" type="button">Start game</button>
+        <button class="btn ghost" id="whackBackBtn" type="button">Back to games</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-quiz" class="hidden" style="animation:screenIn .3s ease;">
+    <div class="card">
+      <div class="progress-row">
+        <span id="qCounter">Question 1 of 6</span>
+        <span class="timer" id="quizTimer" role="timer" aria-label="Time remaining: 5 minutes" aria-live="off">05:00</span>
+      </div>
+      <p class="section-label quiz-track" id="qTrack"></p>
+      <div class="bar"><div id="progressFill" style="width:0%"></div></div>
+      <p class="qtext" id="qText"></p>
+      <div class="options" id="qOptions"></div>
+      <button class="btn" id="nextBtn" disabled>Next</button>
+    </div>
+  </section>
+
+  <section id="screen-results" class="hidden" style="animation:screenIn .3s ease;">
+    <div class="card">
+      <p class="section-label hidden" id="completionMessage" role="status"></p>
+      <div class="score-hero">
+        <div class="num" id="scoreNum">0</div>
+        <div class="outof">out of 20</div>
+        <div class="tierbadge" id="tierBadge"></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="n" id="correctCount">0</div><div class="l">Correct</div></div>
+        <div class="stat"><div class="n" id="wrongCount">0</div><div class="l">Wrong</div></div>
+        <div class="stat"><div class="n" id="pctCount">0%</div><div class="l">Score</div></div>
+      </div>
+      <div class="breakdown" id="breakdown"></div>
+      <button class="btn" id="retryBtn" style="margin-top:18px;">Try another track</button>
+    </div>
+  </section>
+</div>
+
+<script>
+const CATEGORIES = [
+  {key:"cs", name:"Computer Science", color:"var(--accent)"},
+  {key:"geo", name:"Geomatics", color:"var(--teal)"},
+  {key:"robo", name:"Robotics", color:"var(--violet)"},
+  {key:"elec", name:"Electronics", color:"var(--rust)"}
+];
+const DIFFICULTIES = ["Easy","Medium","Hard"];
+const QUIZ_MODES = [
+  {key:"timed", name:"Timed Quiz", icon:"⏱️", description:"Six questions · 5 minutes"},
+  {key:"rapid", name:"Rapid Fire", icon:"⚡", description:"Quick questions · 15 seconds each"}
+];
+const GAME_MODES = [
+  {key:"ttt", name:"XO Showdown", icon:"✕ ○", description:"Play a friend or the computer"},
+  {key:"four", name:"Four in a Row", icon:"🔴", description:"Two players · connect four"},
+  {key:"rps", name:"Rock Paper Scissors", icon:"✊", description:"Best of five against the computer"},
+  {key:"memory", name:"Memory Match", icon:"🧠", description:"Match four pairs of tech terms"},
+  {key:"simon", name:"Simon Says", icon:"🎨", description:"Remember the growing color pattern"},
+  {key:"pong", name:"Neon Pong", icon:"🏓", description:"Beat the computer · first to 5"},
+  {key:"whack", name:"Whack-a-Mole", icon:"🐹", description:"Catch as many as you can in 30 sec"},
+  {key:"snake", name:"Snake Dash", icon:"🐍", description:"Collect snacks · dodge your tail"},
+  {key:"tetris", name:"Tetris", icon:"🧱", description:"Stack falling blocks · clear lines"}
+];
+
+const QUESTIONS = {
+  cs:{
+    Easy:[
+      {q:"What does 'CPU' stand for?",o:["Central Processing Unit","Computer Power Unit","Core Program Utility","Central Program Unit"],c:0},
+      {q:"Which data structure uses LIFO order?",o:["Queue","Stack","Array","Graph"],c:1},
+      {q:"What symbol is commonly used for comments in Python?",o:["//","#","--","/* */"],c:1},
+      {q:"What does 'RAM' stand for?",o:["Random Access Memory","Read And Modify","Run All Memory","Rapid Access Module"],c:0},
+      {q:"Which of these is a valid variable name in most languages?",o:["2value","my-value","my_value","my value"],c:2},
+      {q:"What does HTML stand for?",o:["HyperText Markup Language","High Tech Modern Language","Home Tool Markup Language","Hyperlink Text Mode"],c:0}
+    ],
+    Medium:[
+      {q:"What is the time complexity of binary search?",o:["O(n)","O(n log n)","O(log n)","O(1)"],c:2},
+      {q:"Which of these is NOT a programming paradigm?",o:["Object-Oriented","Functional","Sequential Query","Procedural"],c:2},
+      {q:"In SQL, which clause filters grouped results?",o:["WHERE","HAVING","FILTER","GROUP"],c:1},
+      {q:"What does API stand for?",o:["Application Programming Interface","Applied Program Instruction","Automated Process Integration","Application Process Index"],c:0},
+      {q:"Which data structure is best for implementing a 'first in, first out' queue?",o:["Stack","Linked list used as queue","Binary tree","Hash map"],c:1},
+      {q:"What does 'recursion' mean in programming?",o:["A function calling itself","A loop that never ends","A variable with no type","A memory leak"],c:0}
+    ],
+    Hard:[
+      {q:"Which sorting algorithm has the best average time complexity?",o:["Bubble sort","Quick sort","Selection sort","Insertion sort"],c:1},
+      {q:"What problem does the CAP theorem describe?",o:["Compiler optimization","Distributed systems trade-offs","Memory allocation","Encryption strength"],c:1},
+      {q:"Which design pattern restricts a class to a single instance?",o:["Factory","Observer","Singleton","Adapter"],c:2},
+      {q:"What does 'NP-complete' describe in complexity theory?",o:["A problem solvable in constant time","A class of hard-to-solve but easy-to-verify problems","A type of memory allocation","A sorting algorithm family"],c:1},
+      {q:"In a hash table, what causes a 'collision'?",o:["Two keys mapping to the same slot","Running out of memory","A missing index","A duplicate function name"],c:0},
+      {q:"What is the main benefit of a B-tree over a binary search tree for disk storage?",o:["Fewer disk reads due to higher branching factor","Simpler code","Smaller memory footprint always","No need for balancing"],c:0}
+    ]
+  },
+  geo:{
+    Easy:[
+      {q:"What does GPS stand for?",o:["Global Positioning System","General Position Survey","Geo Plotting Service","Ground Positioning Sensor"],c:0},
+      {q:"Which tool measures horizontal and vertical angles on land?",o:["Theodolite","Barometer","Altimeter","Anemometer"],c:0},
+      {q:"What is a topographic map primarily used to show?",o:["Ocean currents","Land elevation and features","Population density","Weather patterns"],c:1},
+      {q:"What does 'cartography' refer to?",o:["The science of map-making","Measuring rainfall","Studying rock formations","Tracking satellites only"],c:0},
+      {q:"Which instrument is used to measure distance by bouncing a laser off a target?",o:["Total station","Compass","Sextant","Hygrometer"],c:0},
+      {q:"What is a contour line on a map used to represent?",o:["Roads","Points of equal elevation","Political borders","Rivers only"],c:1}
+    ],
+    Medium:[
+      {q:"What does GIS stand for?",o:["Geo Imaging System","Geographic Information System","Ground Inspection Service","Geo Index Sensor"],c:1},
+      {q:"Which projection is commonly used for nautical navigation?",o:["Mercator","Robinson","Mollweide","Azimuthal"],c:0},
+      {q:"LiDAR primarily uses which type of signal?",o:["Radio waves","Sound waves","Laser light pulses","Magnetic fields"],c:2},
+      {q:"What is a 'geodetic datum' used to define?",o:["A reference surface for measuring positions on Earth","A weather forecast model","A soil classification","A map color scheme"],c:0},
+      {q:"Which satellite constellation is used for positioning in Europe?",o:["Galileo","Hubble","Landsat","Starlink"],c:0},
+      {q:"What does 'orthophoto' mean?",o:["A geometrically corrected aerial photo","A black-and-white satellite image","A 3D printed map","A hand-drawn sketch map"],c:0}
+    ],
+    Hard:[
+      {q:"What is the main source of error called 'datum shift' caused by?",o:["Different reference ellipsoids","Cloud cover","Signal jamming","Battery drain"],c:0},
+      {q:"RTK GPS correction improves accuracy using what?",o:["A fixed base station reference","Satellite count only","Higher antenna gain","Longer wavelengths"],c:0},
+      {q:"Which coordinate system uses meters and zones?",o:["WGS84 Geographic","UTM","Geodetic Polar","Plate Carrée"],c:1},
+      {q:"What does 'photogrammetry' allow surveyors to derive from images?",o:["Accurate measurements and 3D models","Only color data","Weather predictions","Soil chemistry"],c:0},
+      {q:"Why can multipath interference affect GNSS accuracy?",o:["Signals reflect off surfaces before reaching the receiver","Satellites move too fast","The receiver battery is low","The map projection is wrong"],c:0},
+      {q:"What is a geoid used to model?",o:["Earth's gravitational equipotential surface","Magnetic north drift","Atmospheric pressure","Tidal currents only"],c:0}
+    ]
+  },
+  robo:{
+    Easy:[
+      {q:"What does a servo motor primarily control?",o:["Temperature","Precise angular position","Voltage","Sound"],c:1},
+      {q:"Which sensor detects distance using sound waves?",o:["Ultrasonic sensor","Photoresistor","Thermistor","Gyroscope"],c:0},
+      {q:"What is an actuator's role in a robot?",o:["Sense the environment","Store data","Produce motion or action","Supply power only"],c:2},
+      {q:"Which component gives a wheel its rotational motion in most hobby robots?",o:["DC motor","Capacitor","Resistor","Diode"],c:0},
+      {q:"What does a line-following robot typically use to detect a line?",o:["IR sensors","Microphone","Barometer","GPS module"],c:0},
+      {q:"What is the purpose of a robot's 'end effector'?",o:["To interact with objects, like a gripper","To supply power","To cool the motors","To store code"],c:0}
+    ],
+    Medium:[
+      {q:"What does PID stand for in robotics control?",o:["Proportional Integral Derivative","Power Input Device","Pulse Interval Driver","Position Indicator Device"],c:0},
+      {q:"Which component gives a robot its sense of orientation?",o:["IMU (Inertial Measurement Unit)","Relay","Capacitor","Encoder only"],c:0},
+      {q:"In robotics, what is 'forward kinematics' used to calculate?",o:["Battery life","End-effector position from joint angles","Sensor noise","Motor torque limits"],c:1},
+      {q:"What does a rotary encoder measure?",o:["Rotational position or speed of a shaft","Ambient light","Air pressure","Magnetic field strength only"],c:0},
+      {q:"Why are degrees of freedom (DOF) important in a robotic arm?",o:["They define the arm's range of independent movements","They measure battery capacity","They control wireless range","They set the clock speed"],c:0},
+      {q:"What is the main purpose of a motor driver / H-bridge circuit?",o:["To control motor direction and speed","To cool the robot","To store sensor data","To boost wireless signal"],c:0}
+    ],
+    Hard:[
+      {q:"What does SLAM stand for in mobile robotics?",o:["Simultaneous Localization and Mapping","Sensor Level Adjustment Module","Servo Loop Angle Measurement","Static Load Analysis Method"],c:0},
+      {q:"Inverse kinematics is used to determine what?",o:["Joint angles needed for a target position","Battery voltage drop","Sensor calibration drift","Wireless signal range"],c:0},
+      {q:"Which control approach adapts to uncertain, changing environments?",o:["Open-loop control","Closed-loop feedback control","Fixed timer control","None of these"],c:1},
+      {q:"What is a Jacobian matrix used for in robotic arm control?",o:["Relating joint velocities to end-effector velocity","Storing sensor logs","Encrypting commands","Measuring battery voltage"],c:0},
+      {q:"In a Kalman filter, what is primarily being estimated?",o:["The true state of a system from noisy measurements","The robot's paint color","The Wi-Fi signal strength","The firmware version"],c:0},
+      {q:"Why is 'gimbal lock' a problem in robot orientation representation?",o:["It causes loss of a degree of rotational freedom","It drains the battery faster","It overheats the motor","It disables the sensors"],c:0}
+    ]
+  },
+  elec:{
+    Easy:[
+      {q:"What unit measures electrical resistance?",o:["Volt","Ohm","Ampere","Watt"],c:1},
+      {q:"What does a capacitor store?",o:["Electrical energy in a field","Heat","Magnetic data","Sound"],c:0},
+      {q:"Which law relates voltage, current and resistance?",o:["Newton's Law","Ohm's Law","Faraday's Law","Boyle's Law"],c:1},
+      {q:"What does 'AC' stand for in electricity?",o:["Alternating Current","Active Charge","Applied Current","Ampere Control"],c:0},
+      {q:"Which component blocks DC but allows AC to pass?",o:["Capacitor","Resistor","Battery","Switch"],c:0},
+      {q:"What is the unit of electrical power?",o:["Watt","Joule","Ohm","Coulomb"],c:0}
+    ],
+    Medium:[
+      {q:"What does an LED require to limit current?",o:["A resistor in series","A capacitor in parallel","Nothing at all","A transformer"],c:0},
+      {q:"In a circuit, what does a diode mainly do?",o:["Allow current in one direction only","Store large charge","Amplify voltage","Measure frequency"],c:0},
+      {q:"What is the purpose of a transformer?",o:["Convert AC to DC","Change voltage levels via magnetic coupling","Store digital data","Filter noise only"],c:1},
+      {q:"What does a multimeter measure?",o:["Voltage, current and resistance","Only temperature","Only frequency","Only magnetic field"],c:0},
+      {q:"What is the function of a voltage regulator IC?",o:["To output a steady fixed voltage","To store data","To generate sound","To block all current"],c:0},
+      {q:"In an RC circuit, what does the time constant determine?",o:["How fast the capacitor charges or discharges","The resistor's color code","The AC frequency only","The wire's resistance per meter"],c:0}
+    ],
+    Hard:[
+      {q:"What does an op-amp's 'virtual short' assumption rely on?",o:["High open-loop gain with negative feedback","Zero power supply","Infinite resistance to ground","No feedback at all"],c:0},
+      {q:"In digital electronics, what does a flip-flop store?",o:["One bit of state","An analog voltage","A full byte only","A clock signal"],c:0},
+      {q:"What causes 'ripple' in a rectified DC output?",o:["Incomplete smoothing by the filter capacitor","Excess resistance","Magnetic saturation","Wire length"],c:0},
+      {q:"What does 'impedance matching' aim to maximize?",o:["Power transfer between source and load","Wire color accuracy","Battery lifespan","PCB size"],c:0},
+      {q:"In a MOSFET, what does the gate voltage control?",o:["The conduction between drain and source","The supply frequency","The resistor value","The capacitor charge rate only"],c:0},
+      {q:"What is the main cause of electromagnetic interference (EMI) in circuits?",o:["Rapidly changing currents and voltages radiating energy","Low battery voltage","Too much resistance","Excess insulation"],c:0}
+    ]
+  }
+};
+
+const QUIZ_DURATION_SECONDS=5*60;
+const RAPID_FIRE_SECONDS=15;
+let selCat=null, selDiff=null, selMode="snake", selOpponent=null, quiz=[], current=0, answers=[], timerInterval=null, quizDeadline=0, timerExpired=false, timedOutQuestions=0, activeTimerDuration=QUIZ_DURATION_SECONDS;
+let tttBoard=Array(9).fill(null), tttCurrent="X", tttFinished=false, tttScores={X:0,O:0,draw:0}, tttAiThinking=false, tttAiTimeout=null;
+const FOUR_ROWS=6, FOUR_COLUMNS=7;
+let fourBoard=Array.from({length:FOUR_ROWS},()=>Array(FOUR_COLUMNS).fill(null)), fourCurrent="R", fourFinished=false, fourScores={R:0,Y:0,draw:0};
+let rpsScores={player:0,computer:0}, rpsRound=0, memoryDeck=[], memoryOpen=[], memoryMatches=0, memoryMoves=0, memoryLock=false;
+const SNAKE_GRID_SIZE=20;
+let snakeBody=[], snakeDirection={x:1,y:0}, snakeNextDirection={x:1,y:0}, snakeFood={x:14,y:10}, snakeScore=0, snakeBest=0, snakeInterval=null, snakeRunning=false;
+let simonSequence=[], simonInputIndex=0, simonLevel=0, simonBest=0, simonAccepting=false, simonTimeouts=[];
+let pongInterval=null, pongState=null, pongKeys=new Set();
+let whackScore=0, whackBest=0, whackTime=30, whackActiveHole=-1, whackRunning=false, whackTimer=null, whackSpawnTimer=null;
+
+const gameRow = document.getElementById('gameRow');
+const quizModeRow=document.getElementById('quizModeRow');
+const opponentSetup=document.getElementById('opponentSetup');
+const opponentChoices=[...document.querySelectorAll('.opponent-choice')];
+opponentChoices.forEach(button=>button.addEventListener('click',()=>{
+  selOpponent=button.dataset.opponent;
+  opponentChoices.forEach(choice=>{
+    const selected=choice===button;
+    choice.classList.toggle('selected',selected);
+    choice.setAttribute('aria-pressed',String(selected));
+  });
+  checkReady();
+}));
+
+function selectMode(mode){
+  selMode=mode.key;
+  document.querySelectorAll('.game-card').forEach(button=>{
+    const selected=button.dataset.mode===selMode;
+    button.classList.toggle('selected',selected);
+    button.setAttribute('aria-pressed',String(selected));
+  });
+  const isQuiz=selMode==='timed'||selMode==='rapid';
+  document.getElementById('quizSetup').classList.toggle('hidden',!isQuiz);
+  opponentSetup.classList.toggle('hidden',selMode!=='ttt');
+  document.getElementById('fourPlayerSetupLabel').classList.toggle('hidden',selMode!=='four');
+  const labels={timed:'Start timed quiz',rapid:'Start Rapid Fire',ttt:'Start XO Showdown',four:'Start Four in a Row',rps:'Start Rock, Paper, Scissors',memory:'Start Memory Match',snake:'Start Snake Dash',simon:'Start Simon Says',pong:'Start Neon Pong',whack:'Start Whack-a-Mole',tetris:'Start Tetris'};
+  document.getElementById(isQuiz?'quizStartBtn':'gameStartBtn').textContent=labels[selMode];
+  checkReady();
+}
+
+function renderModeCards(modes,container){
+  modes.forEach(mode=>{
+  const b=document.createElement('button');
+  b.type='button'; b.className='game-card'; b.dataset.mode=mode.key; b.setAttribute('aria-pressed',String(mode.key===selMode));
+  b.innerHTML=`<span class="game-icon" aria-hidden="true">${mode.icon}</span><span class="game-title">${mode.name}</span><span class="game-description">${mode.description}</span>`;
+  if(mode.key===selMode) b.classList.add('selected');
+  b.onclick=()=>selectMode(mode);
+  container.appendChild(b);
+  });
+}
+
+renderModeCards(QUIZ_MODES,quizModeRow);
+renderModeCards(GAME_MODES,gameRow);
+selectMode(GAME_MODES.find(mode=>mode.key===selMode));
+
+function showMenuSection(section){
+  const quizzesSelected=section==='quizzes';
+  document.getElementById('quizPanel').classList.toggle('hidden',!quizzesSelected);
+  document.getElementById('quizPanel').hidden=!quizzesSelected;
+  document.getElementById('gamesPanel').classList.toggle('hidden',quizzesSelected);
+  document.getElementById('gamesPanel').hidden=quizzesSelected;
+  document.getElementById('quizzesTab').classList.toggle('active',quizzesSelected);
+  document.getElementById('quizzesTab').setAttribute('aria-selected',String(quizzesSelected));
+  document.getElementById('gamesTab').classList.toggle('active',!quizzesSelected);
+  document.getElementById('gamesTab').setAttribute('aria-selected',String(!quizzesSelected));
+  selectMode(quizzesSelected?QUIZ_MODES[0]:GAME_MODES[0]);
+}
+
+document.getElementById('quizzesTab').addEventListener('click',()=>showMenuSection('quizzes'));
+document.getElementById('gamesTab').addEventListener('click',()=>showMenuSection('games'));
+
+const categoryGrid = document.getElementById('categoryGrid');
+CATEGORIES.forEach(cat=>{
+  const b=document.createElement('button');
+  b.className='choice'; b.type='button';
+  b.innerHTML=`<span class="dot" style="background:${cat.color}"></span>${cat.name}`;
+  b.onclick=()=>{selCat=cat.key; [...categoryGrid.children].forEach(c=>c.classList.remove('selected')); b.classList.add('selected'); checkReady();};
+  categoryGrid.appendChild(b);
+});
+
+const diffRow = document.getElementById('diffRow');
+DIFFICULTIES.forEach(d=>{
+  const b=document.createElement('button'); b.type='button'; b.textContent=d;
+  b.onclick=()=>{selDiff=d; [...diffRow.children].forEach(c=>c.classList.remove('selected')); b.classList.add('selected'); checkReady();};
+  diffRow.appendChild(b);
+});
+
+function checkReady(){
+  const isQuiz=selMode==='timed'||selMode==='rapid';
+  const ready=isQuiz?Boolean(selCat&&selDiff):selMode==='ttt'?Boolean(selOpponent):true;
+  document.getElementById('quizStartBtn').disabled=!isQuiz||!ready;
+  document.getElementById('gameStartBtn').disabled=isQuiz||!ready;
+}
+
+function startSelectedQuiz(){
+  if(selMode!=='timed'&&selMode!=='rapid') return;
+  quiz = QUESTIONS[selCat][selDiff].slice();
+  if(selMode==='rapid'){
+    for(let i=quiz.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [quiz[i],quiz[j]]=[quiz[j],quiz[i]];
+    }
+  }
+  current=0; answers=new Array(quiz.length).fill(null);
+  timerExpired=false;
+  timedOutQuestions=0;
+  document.getElementById('screen-select').classList.add('hidden');
+  document.getElementById('screen-quiz').classList.remove('hidden');
+  document.getElementById('qTrack').textContent = CATEGORIES.find(c=>c.key===selCat).name + ' · ' + selDiff;
+  renderQuestion();
+}
+
+document.getElementById('quizStartBtn').onclick=startSelectedQuiz;
+document.getElementById('gameStartBtn').onclick=()=>{
+  if(selMode==='ttt'){
+    startTicTacToe();
+    return;
+  }
+  if(selMode==='rps'){
+    startRockPaperScissors();
+    return;
+  }
+  if(selMode==='memory'){
+    startMemoryMatch();
+    return;
+  }
+  if(selMode==='four'){
+    startFourInARow();
+    return;
+  }
+  if(selMode==='snake'){
+    startSnakeGame();
+    return;
+  }
+  if(selMode==='simon'){
+    startSimonGame();
+    return;
+  }
+  if(selMode==='pong'){
+    startPongGame();
+    return;
+  }
+  if(selMode==='whack'){
+    document.getElementById('screen-select').classList.add('hidden');
+    document.getElementById('screen-whack').classList.remove('hidden');
+    resetWhackGame();
+    return;
+  }
+  if(selMode==='tetris'){
+    startTetrisGame();
+    return;
+  }
+};
+
+const WINNING_LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const tttCells=[...document.querySelectorAll('.ttt-cell')];
+
+function startTicTacToe(){
+  document.getElementById('playerXName').textContent=selOpponent==='computer'?'You (X)':'Player X';
+  document.getElementById('playerOName').textContent=selOpponent==='computer'?'Computer (O)':'Player O';
+  document.getElementById('tttDescription').textContent=selOpponent==='computer'?'You are X. The computer plays O. Can you beat it?':'Take turns with a friend. First to line up three wins!';
+  document.getElementById('screen-select').classList.add('hidden');
+  document.getElementById('screen-ttt').classList.remove('hidden');
+  resetTicTacToeRound();
+  tttCells[0].focus();
+}
+
+function resetTicTacToeRound(){
+  if(tttAiTimeout) clearTimeout(tttAiTimeout);
+  tttAiTimeout=null;
+  tttBoard=Array(9).fill(null);
+  tttCurrent="X";
+  tttFinished=false;
+  tttAiThinking=false;
+  document.getElementById('tttStatus').textContent="Player X's turn";
+  tttCells.forEach((cell,index)=>{
+    cell.textContent='';
+    cell.disabled=false;
+    cell.classList.remove('mark-o','filled','win');
+    cell.setAttribute('aria-label',`Square ${index+1}, empty`);
+  });
+  updateTicTacToeScoreboard();
+}
+
+function updateTicTacToeScoreboard(){
+  document.getElementById('scoreX').textContent=tttScores.X;
+  document.getElementById('scoreO').textContent=tttScores.O;
+  document.getElementById('scoreDraw').textContent=tttScores.draw;
+  document.getElementById('playerXCard').classList.toggle('active',!tttFinished && !tttAiThinking && tttCurrent==='X');
+  document.getElementById('playerOCard').classList.toggle('active',!tttFinished && !tttAiThinking && tttCurrent==='O');
+}
+
+function playTicTacToeMove(index,isComputerMove=false){
+  if(tttFinished || tttAiThinking || tttBoard[index] || (selOpponent==='computer' && tttCurrent==='O' && !isComputerMove)) return;
+  tttBoard[index]=tttCurrent;
+  const cell=tttCells[index];
+  cell.textContent=tttCurrent;
+  cell.disabled=true;
+  cell.classList.add('filled');
+  if(tttCurrent==='O') cell.classList.add('mark-o');
+  cell.setAttribute('aria-label',`Square ${index+1}, ${tttCurrent}`);
+
+  const winningLine=WINNING_LINES.find(line=>line.every(position=>tttBoard[position]===tttCurrent));
+  if(winningLine){
+    tttFinished=true;
+    tttScores[tttCurrent]++;
+    const winner=tttCurrent==='X'?(selOpponent==='computer'?'You':'Player X'):(selOpponent==='computer'?'The computer':'Player O');
+    document.getElementById('tttStatus').textContent=`${winner} wins! Play another round?`;
+    winningLine.forEach(position=>tttCells[position].classList.add('win'));
+    tttCells.forEach(button=>button.disabled=true);
+  }else if(tttBoard.every(Boolean)){
+    tttFinished=true;
+    tttScores.draw++;
+    document.getElementById('tttStatus').textContent="It's a draw! Play another round?";
+  }else{
+    tttCurrent=tttCurrent==='X'?'O':'X';
+    if(selOpponent==='computer' && tttCurrent==='O'){
+      tttAiThinking=true;
+      tttCells.forEach(button=>button.disabled=true);
+      document.getElementById('tttStatus').textContent="Computer is thinking…";
+      updateTicTacToeScoreboard();
+      tttAiTimeout=setTimeout(makeComputerMove,350);
+      return;
+    }
+    tttCells.forEach((button,position)=>button.disabled=Boolean(tttBoard[position]));
+    document.getElementById('tttStatus').textContent=`Player ${tttCurrent}'s turn`;
+  }
+  updateTicTacToeScoreboard();
+}
+
+function findWinningLine(board,player){
+  return WINNING_LINES.find(line=>line.every(position=>board[position]===player));
+}
+
+function scoreTicTacToe(board,player,depth){
+  if(findWinningLine(board,'O')) return 10-depth;
+  if(findWinningLine(board,'X')) return depth-10;
+  if(board.every(Boolean)) return 0;
+  const scores=[];
+  board.forEach((value,index)=>{
+    if(value) return;
+    board[index]=player;
+    scores.push(scoreTicTacToe(board,player==='O'?'X':'O',depth+1));
+    board[index]=null;
+  });
+  return player==='O'?Math.max(...scores):Math.min(...scores);
+}
+
+function chooseComputerMove(){
+  let bestScore=-Infinity;
+  let bestMoves=[];
+  tttBoard.forEach((value,index)=>{
+    if(value) return;
+    tttBoard[index]='O';
+    const score=scoreTicTacToe(tttBoard,'X',0);
+    tttBoard[index]=null;
+    if(score>bestScore){bestScore=score;bestMoves=[index];}
+    else if(score===bestScore) bestMoves.push(index);
+  });
+  return bestMoves[Math.floor(Math.random()*bestMoves.length)];
+}
+
+function makeComputerMove(){
+  tttAiTimeout=null;
+  if(tttFinished || selOpponent!=='computer' || tttCurrent!=='O') return;
+  tttAiThinking=false;
+  const move=chooseComputerMove();
+  if(move!==undefined) playTicTacToeMove(move,true);
+  else {
+    tttFinished=true;
+    tttScores.draw++;
+    document.getElementById('tttStatus').textContent="It's a draw! Play another round?";
+    updateTicTacToeScoreboard();
+  }
+}
+
+tttCells.forEach((cell,index)=>cell.addEventListener('click',()=>playTicTacToeMove(index)));
+document.getElementById('newRoundBtn').addEventListener('click',resetTicTacToeRound);
+document.getElementById('backToGamesBtn').addEventListener('click',()=>{
+  document.getElementById('screen-ttt').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+});
+
+const fourDropButtons=[...document.querySelectorAll('.four-drop')];
+
+function startFourInARow(){
+  document.getElementById('screen-select').classList.add('hidden');
+  document.getElementById('screen-four').classList.remove('hidden');
+  resetFourInARowRound();
+}
+
+function resetFourInARowRound(){
+  fourBoard=Array.from({length:FOUR_ROWS},()=>Array(FOUR_COLUMNS).fill(null));
+  fourCurrent='R';
+  fourFinished=false;
+  document.getElementById('fourStatus').textContent="Player Red's turn";
+  renderFourInARowBoard();
+  updateFourInARowScoreboard();
+}
+
+function renderFourInARowBoard(winningPositions=[]){
+  const boardElement=document.getElementById('fourBoard');
+  boardElement.querySelectorAll('.four-slot').forEach(slot=>slot.remove());
+  for(let row=0;row<FOUR_ROWS;row++){
+    for(let column=0;column<FOUR_COLUMNS;column++){
+      const slot=document.createElement('span');
+      const disc=fourBoard[row][column];
+      slot.className=`four-slot${disc==='R'?' red':disc==='Y'?' yellow':''}`;
+      if(winningPositions.some(position=>position.row===row&&position.column===column)) slot.classList.add('winner');
+      slot.setAttribute('aria-label',`Row ${row+1}, column ${column+1}${disc?`, ${disc==='R'?'red':'yellow'} disc`:', empty'}`);
+      boardElement.appendChild(slot);
+    }
+  }
+  fourDropButtons.forEach((button,column)=>{
+    const columnFull=fourBoard[0][column]!==null;
+    button.disabled=fourFinished||columnFull;
+    button.setAttribute('aria-label',columnFull?`Column ${column+1} is full`:`Drop ${fourCurrent==='R'?'red':'yellow'} disc in column ${column+1}`);
+  });
+}
+
+function updateFourInARowScoreboard(){
+  document.getElementById('fourRedScore').textContent=fourScores.R;
+  document.getElementById('fourYellowScore').textContent=fourScores.Y;
+  document.getElementById('fourDrawScore').textContent=fourScores.draw;
+  document.getElementById('fourRedCard').classList.toggle('active',!fourFinished&&fourCurrent==='R');
+  document.getElementById('fourYellowCard').classList.toggle('active',!fourFinished&&fourCurrent==='Y');
+}
+
+function getFourInARowWinner(row,column,player){
+  const directions=[[0,1],[1,0],[1,1],[1,-1]];
+  for(const [rowStep,columnStep] of directions){
+    const line=[{row,column}];
+    for(const direction of [-1,1]){
+      let nextRow=row+rowStep*direction;
+      let nextColumn=column+columnStep*direction;
+      while(nextRow>=0&&nextRow<FOUR_ROWS&&nextColumn>=0&&nextColumn<FOUR_COLUMNS&&fourBoard[nextRow][nextColumn]===player){
+        line.push({row:nextRow,column:nextColumn});
+        nextRow+=rowStep*direction;
+        nextColumn+=columnStep*direction;
+      }
+    }
+    if(line.length>=4) return line;
+  }
+  return null;
+}
+
+function dropFourInARowDisc(column){
+  if(fourFinished||column<0||column>=FOUR_COLUMNS||fourBoard[0][column]!==null) return;
+  let row=FOUR_ROWS-1;
+  while(row>=0&&fourBoard[row][column]!==null) row--;
+  if(row<0) return;
+  fourBoard[row][column]=fourCurrent;
+  const winningPositions=getFourInARowWinner(row,column,fourCurrent);
+  if(winningPositions){
+    fourFinished=true;
+    fourScores[fourCurrent]++;
+    document.getElementById('fourStatus').textContent=`Player ${fourCurrent==='R'?'Red':'Yellow'} wins! Play another round?`;
+    renderFourInARowBoard(winningPositions);
+  }else if(fourBoard.every(boardRow=>boardRow.every(Boolean))){
+    fourFinished=true;
+    fourScores.draw++;
+    document.getElementById('fourStatus').textContent="It's a draw! Play another round?";
+    renderFourInARowBoard();
+  }else{
+    fourCurrent=fourCurrent==='R'?'Y':'R';
+    document.getElementById('fourStatus').textContent=`Player ${fourCurrent==='R'?'Red':'Yellow'}'s turn`;
+    renderFourInARowBoard();
+  }
+  updateFourInARowScoreboard();
+}
+
+fourDropButtons.forEach(button=>button.addEventListener('click',()=>dropFourInARowDisc(Number(button.dataset.column))));
+document.getElementById('fourResetBtn').addEventListener('click',resetFourInARowRound);
+document.getElementById('fourBackBtn').addEventListener('click',()=>{
+  document.getElementById('screen-four').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+});
+
+const RPS_CHOICES=['rock','paper','scissors'];
+const RPS_EMOJI={rock:'✊',paper:'✋',scissors:'✌️'};
+const RPS_BEATS={rock:'scissors',paper:'rock',scissors:'paper'};
+
+function startRockPaperScissors(){
+  document.getElementById('screen-select').classList.add('hidden');
+  document.getElementById('screen-rps').classList.remove('hidden');
+  resetRockPaperScissors();
+}
+
+function resetRockPaperScissors(){
+  rpsScores={player:0,computer:0};
+  rpsRound=0;
+  document.querySelectorAll('.rps-choice').forEach(button=>button.disabled=false);
+  document.getElementById('rpsPlayerScore').textContent='0';
+  document.getElementById('rpsComputerScore').textContent='0';
+  document.getElementById('rpsRound').textContent='1 / 5';
+  document.getElementById('rpsStatus').textContent='Choose your move!';
+}
+
+function playRockPaperScissors(playerChoice){
+  if(rpsRound>=5) return;
+  const computerChoice=RPS_CHOICES[Math.floor(Math.random()*RPS_CHOICES.length)];
+  rpsRound++;
+  let outcome;
+  if(playerChoice===computerChoice) outcome="It's a tie!";
+  else if(RPS_BEATS[playerChoice]===computerChoice){rpsScores.player++;outcome='You win this round!';}
+  else{rpsScores.computer++;outcome='Computer wins this round!';}
+  document.getElementById('rpsPlayerScore').textContent=rpsScores.player;
+  document.getElementById('rpsComputerScore').textContent=rpsScores.computer;
+  document.getElementById('rpsRound').textContent=`${Math.min(rpsRound+1,5)} / 5`;
+  if(rpsRound===5){
+    if(rpsScores.player>rpsScores.computer) outcome='You win the match! Great job!';
+    else if(rpsScores.player<rpsScores.computer) outcome='Computer wins the match. Try again!';
+    else outcome="It's a match draw! Try again!";
+    document.querySelectorAll('.rps-choice').forEach(button=>button.disabled=true);
+    document.getElementById('rpsRound').textContent='5 / 5';
+  }
+  document.getElementById('rpsStatus').textContent=`You chose ${RPS_EMOJI[playerChoice]} · Computer chose ${RPS_EMOJI[computerChoice]}. ${outcome}`;
+}
+
+document.querySelectorAll('.rps-choice').forEach(button=>button.addEventListener('click',()=>playRockPaperScissors(button.dataset.choice)));
+document.getElementById('rpsResetBtn').addEventListener('click',resetRockPaperScissors);
+document.getElementById('rpsBackBtn').addEventListener('click',()=>{
+  document.getElementById('screen-rps').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+});
+
+const MEMORY_PAIRS=[
+  ['CPU','Central Processing Unit'],
+  ['RAM','Random Access Memory'],
+  ['HTML','HyperText Markup Language'],
+  ['Stack','Last in, first out']
+];
+
+function startMemoryMatch(){
+  document.getElementById('screen-select').classList.add('hidden');
+  document.getElementById('screen-memory').classList.remove('hidden');
+  resetMemoryMatch();
+}
+
+function resetMemoryMatch(){
+  if(memoryTimeout) clearTimeout(memoryTimeout);
+  memoryTimeout=null;
+  memoryOpen=[];
+  memoryMatches=0;
+  memoryMoves=0;
+  memoryLock=false;
+  memoryDeck=MEMORY_PAIRS.flatMap((pair,pairId)=>pair.map((text,side)=>({text,pairId,side,matched:false})));
+  for(let i=memoryDeck.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [memoryDeck[i],memoryDeck[j]]=[memoryDeck[j],memoryDeck[i]];
+  }
+  renderMemoryCards();
+  document.getElementById('memoryStatus').textContent='Find all four pairs!';
+}
+
+let memoryTimeout=null;
+
+function renderMemoryCards(){
+  const board=document.getElementById('memoryBoard');
+  board.replaceChildren();
+  memoryDeck.forEach((card,index)=>{
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='memory-card';
+    button.textContent=card.matched||memoryOpen.includes(index)?card.text:'?';
+    button.setAttribute('aria-label',card.matched||memoryOpen.includes(index)?`Card ${index+1}: ${card.text}`:`Card ${index+1}, hidden`);
+    button.classList.toggle('revealed',memoryOpen.includes(index));
+    button.classList.toggle('matched',card.matched);
+    button.disabled=card.matched||memoryOpen.includes(index)||memoryLock;
+    button.addEventListener('click',()=>flipMemoryCard(index));
+    board.appendChild(button);
+  });
+}
+
+function flipMemoryCard(index){
+  if(memoryLock||memoryDeck[index].matched||memoryOpen.includes(index)) return;
+  memoryOpen.push(index);
+  if(memoryOpen.length<2){
+    renderMemoryCards();
+    return;
+  }
+  memoryMoves++;
+  const [first,second]=memoryOpen;
+  const isMatch=memoryDeck[first].pairId===memoryDeck[second].pairId&&memoryDeck[first].side!==memoryDeck[second].side;
+  if(isMatch){
+    memoryDeck[first].matched=true;
+    memoryDeck[second].matched=true;
+    memoryMatches++;
+    memoryOpen=[];
+    document.getElementById('memoryStatus').textContent=memoryMatches===MEMORY_PAIRS.length?`You matched them all in ${memoryMoves} moves!`:`Great match! ${memoryMatches} of ${MEMORY_PAIRS.length} pairs found.`;
+    renderMemoryCards();
+    return;
+  }
+  memoryLock=true;
+  document.getElementById('memoryStatus').textContent='Not a match — remember the cards!';
+  renderMemoryCards();
+  memoryTimeout=setTimeout(()=>{
+    memoryTimeout=null;
+    memoryOpen=[];
+    memoryLock=false;
+    document.getElementById('memoryStatus').textContent=`${memoryMatches} of ${MEMORY_PAIRS.length} pairs found.`;
+    renderMemoryCards();
+  },800);
+}
+
+document.getElementById('memoryResetBtn').addEventListener('click',resetMemoryMatch);
+document.getElementById('memoryBackBtn').addEventListener('click',()=>{
+  if(memoryTimeout) clearTimeout(memoryTimeout);
+  memoryTimeout=null;
+  document.getElementById('screen-memory').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+});
+
+const snakeCanvas=document.getElementById('snakeCanvas');
+const snakeContext=snakeCanvas.getContext('2d');
+const SNAKE_CELL_SIZE=snakeCanvas.width/SNAKE_GRID_SIZE;
+
+function startSnakeGame(){
+  document.getElementById('screen-select').classList.add('hidden');
+  document.getElementById('screen-snake').classList.remove('hidden');
+  resetSnakeGame();
+}
+
+function placeSnakeFood(){
+  const openCells=[];
+  for(let y=0;y<SNAKE_GRID_SIZE;y++){
+    for(let x=0;x<SNAKE_GRID_SIZE;x++){
+      if(!snakeBody.some(segment=>segment.x===x&&segment.y===y)) openCells.push({x,y});
+    }
+  }
+  if(openCells.length===0) return null;
+  return openCells[Math.floor(Math.random()*openCells.length)];
+}
+
+function drawSnakeBoard(){
+  snakeContext.fillStyle='#151B2E';
+  snakeContext.fillRect(0,0,snakeCanvas.width,snakeCanvas.height);
+  snakeContext.strokeStyle='rgba(255,255,255,.045)';
+  snakeContext.lineWidth=1;
+  for(let cell=0;cell<=SNAKE_GRID_SIZE;cell++){
+    const position=cell*SNAKE_CELL_SIZE;
+    snakeContext.beginPath();
+    snakeContext.moveTo(position,0);
+    snakeContext.lineTo(position,snakeCanvas.height);
+    snakeContext.moveTo(0,position);
+    snakeContext.lineTo(snakeCanvas.width,position);
+    snakeContext.stroke();
+  }
+  if(snakeFood){
+    snakeContext.fillStyle='#FF6682';
+    snakeContext.beginPath();
+    snakeContext.arc((snakeFood.x+.5)*SNAKE_CELL_SIZE,(snakeFood.y+.5)*SNAKE_CELL_SIZE,SNAKE_CELL_SIZE*.36,0,Math.PI*2);
+    snakeContext.fill();
+  }
+  snakeBody.forEach((segment,index)=>{
+    snakeContext.fillStyle=index===0?'#84F4C4':'#45C99B';
+    snakeContext.beginPath();
+    snakeContext.roundRect(segment.x*SNAKE_CELL_SIZE+2,segment.y*SNAKE_CELL_SIZE+2,SNAKE_CELL_SIZE-4,SNAKE_CELL_SIZE-4,5);
+    snakeContext.fill();
+  });
+}
+
+function resetSnakeGame(){
+  if(snakeInterval) clearInterval(snakeInterval);
+  snakeBody=[{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+  snakeDirection={x:1,y:0};
+  snakeNextDirection={x:1,y:0};
+  snakeScore=0;
+  snakeFood=placeSnakeFood();
+  snakeRunning=true;
+  document.getElementById('snakeScore').textContent='0';
+  document.getElementById('snakeBest').textContent=snakeBest;
+  document.getElementById('snakeStatus').textContent='Use the arrow keys, WASD, or the buttons to steer.';
+  snakeCanvas.setAttribute('aria-label','Snake Dash game board. Use arrow keys or direction controls.');
+  drawSnakeBoard();
+  snakeInterval=setInterval(moveSnake,135);
+}
+
+function setSnakeDirection(directionName){
+  if(!snakeRunning) return;
+  const directions={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
+  const nextDirection=directions[directionName];
+  if(!nextDirection||(nextDirection.x===-snakeDirection.x&&nextDirection.y===-snakeDirection.y)) return;
+  snakeNextDirection=nextDirection;
+}
+
+function moveSnake(){
+  if(!snakeRunning) return;
+  snakeDirection=snakeNextDirection;
+  const head={x:snakeBody[0].x+snakeDirection.x,y:snakeBody[0].y+snakeDirection.y};
+  const eatsFood=snakeFood&&head.x===snakeFood.x&&head.y===snakeFood.y;
+  const collisionBody=eatsFood?snakeBody:snakeBody.slice(0,-1);
+  if(head.x<0||head.x>=SNAKE_GRID_SIZE||head.y<0||head.y>=SNAKE_GRID_SIZE||collisionBody.some(segment=>segment.x===head.x&&segment.y===head.y)){
+    endSnakeGame(false);
+    return;
+  }
+  snakeBody.unshift(head);
+  if(eatsFood){
+    snakeScore++;
+    document.getElementById('snakeScore').textContent=snakeScore;
+    snakeFood=placeSnakeFood();
+    if(!snakeFood){
+      endSnakeGame(true);
+      return;
+    }
+  }else{
+    snakeBody.pop();
+  }
+  drawSnakeBoard();
+}
+
+function endSnakeGame(won){
+  snakeRunning=false;
+  if(snakeInterval) clearInterval(snakeInterval);
+  snakeInterval=null;
+  snakeBest=Math.max(snakeBest,snakeScore);
+  document.getElementById('snakeBest').textContent=snakeBest;
+  document.getElementById('snakeStatus').textContent=won?'Amazing! You filled the whole board!':`Game over! You collected ${snakeScore} snack${snakeScore===1?'':'s'}. Tap Play again to try again.`;
+  snakeCanvas.setAttribute('aria-label',`Snake Dash game over. Score: ${snakeScore}.`);
+}
+
+document.addEventListener('keydown',event=>{
+  if(document.getElementById('screen-snake').classList.contains('hidden')) return;
+  const directionKeys={ArrowUp:'up',w:'up',ArrowDown:'down',s:'down',ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right'};
+  const direction=directionKeys[event.key]||directionKeys[event.key.toLowerCase()];
+  if(direction){
+    event.preventDefault();
+    setSnakeDirection(direction);
+  }
+});
+document.querySelectorAll('.snake-controls button').forEach(button=>button.addEventListener('click',()=>setSnakeDirection(button.dataset.direction)));
+document.getElementById('snakeRestartBtn').addEventListener('click',resetSnakeGame);
+document.getElementById('snakeBackBtn').addEventListener('click',()=>{
+  if(snakeInterval) clearInterval(snakeInterval);
+  snakeInterval=null;
+  snakeRunning=false;
+  document.getElementById('screen-snake').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+});
+
+const TETRIS_COLUMNS=10, TETRIS_ROWS=20, TETRIS_CELL_SIZE=30;
+const TETRIS_SHAPES=[
+  {color:'#42D8D0',matrix:[[1,1,1,1]]},
+  {color:'#6688FF',matrix:[[1,0,0],[1,1,1]]},
+  {color:'#F4A261',matrix:[[0,0,1],[1,1,1]]},
+  {color:'#F8C94E',matrix:[[1,1],[1,1]]},
+  {color:'#45C99B',matrix:[[0,1,1],[1,1,0]]},
+  {color:'#A78BFA',matrix:[[0,1,0],[1,1,1]]},
+  {color:'#FF6682',matrix:[[1,1,0],[0,1,1]]}
+];
+const tetrisCanvas=document.getElementById('tetrisCanvas');
+const tetrisContext=tetrisCanvas.getContext('2d');
+let tetrisGrid=[], tetrisPiece=null, tetrisScore=0, tetrisLines=0, tetrisBest=0, tetrisInterval=null, tetrisRunning=false;
+
+function startTetrisGame(){
+  document.getElementById('screen-select').classList.add('hidden');
+  document.getElementById('screen-tetris').classList.remove('hidden');
+  resetTetrisGame();
+}
+
+function spawnTetrisPiece(){
+  const shape=TETRIS_SHAPES[Math.floor(Math.random()*TETRIS_SHAPES.length)];
+  tetrisPiece={matrix:shape.matrix.map(row=>row.slice()),color:shape.color,x:Math.floor((TETRIS_COLUMNS-shape.matrix[0].length)/2),y:0};
+  if(collidesTetris(tetrisPiece.matrix,tetrisPiece.x,tetrisPiece.y)){
+    endTetrisGame();
+    return false;
+  }
+  return true;
+}
+
+function collidesTetris(matrix,x,y){
+  return matrix.some((row,rowIndex)=>row.some((cell,columnIndex)=>{
+    if(!cell) return false;
+    const boardX=x+columnIndex, boardY=y+rowIndex;
+    return boardX<0||boardX>=TETRIS_COLUMNS||boardY>=TETRIS_ROWS||(boardY>=0&&tetrisGrid[boardY][boardX]);
+  }));
+}
+
+function drawTetrisBlock(x,y,color){
+  const inset=2;
+  tetrisContext.fillStyle=color;
+  tetrisContext.fillRect(x*TETRIS_CELL_SIZE+inset,y*TETRIS_CELL_SIZE+inset,TETRIS_CELL_SIZE-inset*2,TETRIS_CELL_SIZE-inset*2);
+  tetrisContext.fillStyle='rgba(255,255,255,.18)';
+  tetrisContext.fillRect(x*TETRIS_CELL_SIZE+inset,y*TETRIS_CELL_SIZE+inset,TETRIS_CELL_SIZE-inset*2,4);
+}
+
+function drawTetrisBoard(){
+  tetrisContext.fillStyle='#151B2E';
+  tetrisContext.fillRect(0,0,tetrisCanvas.width,tetrisCanvas.height);
+  tetrisContext.strokeStyle='rgba(255,255,255,.07)';
+  tetrisContext.lineWidth=1;
+  for(let row=0;row<=TETRIS_ROWS;row++){
+    tetrisContext.beginPath();
+    tetrisContext.moveTo(0,row*TETRIS_CELL_SIZE);
+    tetrisContext.lineTo(tetrisCanvas.width,row*TETRIS_CELL_SIZE);
+    tetrisContext.stroke();
+  }
+  for(let column=0;column<=TETRIS_COLUMNS;column++){
+    tetrisContext.beginPath();
+    tetrisContext.moveTo(column*TETRIS_CELL_SIZE,0);
+    tetrisContext.lineTo(column*TETRIS_CELL_SIZE,tetrisCanvas.height);
+    tetrisContext.stroke();
+  }
+  tetrisGrid.forEach((row,y)=>row.forEach((color,x)=>{if(color) drawTetrisBlock(x,y,color);}));
+  if(tetrisPiece) tetrisPiece.matrix.forEach((row,y)=>row.forEach((cell,x)=>{
+    if(cell&&tetrisPiece.y+y>=0) drawTetrisBlock(tetrisPiece.x+x,tetrisPiece.y+y,tetrisPiece.color);
+  }));
+}
+
+function resetTetrisGame(){
+  if(tetrisInterval) clearInterval(tetrisInterval);
+  tetrisGrid=Array.from({length:TETRIS_ROWS},()=>Array(TETRIS_COLUMNS).fill(null));
+  tetrisScore=0;
+  tetrisLines=0;
+  tetrisRunning=true;
+  document.getElementById('tetrisScore').textContent='0';
+  document.getElementById('tetrisLines').textContent='0';
+  document.getElementById('tetrisBest').textContent=tetrisBest;
+  document.getElementById('tetrisStatus').textContent='Use ← → to move, ↑ to rotate, ↓ to drop faster, or Space to hard drop.';
+  tetrisCanvas.setAttribute('aria-label','Tetris game board. Use arrow keys or touch controls.');
+  spawnTetrisPiece();
+  drawTetrisBoard();
+  if(tetrisRunning) tetrisInterval=setInterval(tickTetris,650);
+}
+
+function moveTetrisPiece(dx,dy){
+  if(!tetrisRunning||!tetrisPiece||collidesTetris(tetrisPiece.matrix,tetrisPiece.x+dx,tetrisPiece.y+dy)) return false;
+  tetrisPiece.x+=dx;
+  tetrisPiece.y+=dy;
+  drawTetrisBoard();
+  return true;
+}
+
+function rotateTetrisPiece(){
+  if(!tetrisRunning||!tetrisPiece) return;
+  const matrix=tetrisPiece.matrix[0].map((_,column)=>tetrisPiece.matrix.map(row=>row[column]).reverse());
+  for(const offset of [0,-1,1,-2,2]){
+    if(!collidesTetris(matrix,tetrisPiece.x+offset,tetrisPiece.y)){
+      tetrisPiece.matrix=matrix;
+      tetrisPiece.x+=offset;
+      drawTetrisBoard();
+      return;
+    }
+  }
+}
+
+function lockTetrisPiece(){
+  tetrisPiece.matrix.forEach((row,y)=>row.forEach((cell,x)=>{
+    if(cell){
+      const boardY=tetrisPiece.y+y;
+      if(boardY<0){endTetrisGame();return;}
+      tetrisGrid[boardY][tetrisPiece.x+x]=tetrisPiece.color;
+    }
+  }));
+  if(!tetrisRunning) return;
+  let cleared=0;
+  tetrisGrid=tetrisGrid.filter(row=>{
+    if(row.every(Boolean)){cleared++;return false;}
+    return true;
+  });
+  while(tetrisGrid.length<TETRIS_ROWS) tetrisGrid.unshift(Array(TETRIS_COLUMNS).fill(null));
+  if(cleared){
+    tetrisLines+=cleared;
+    tetrisScore+=[0,100,300,500,800][cleared]*Math.max(1,Math.floor(tetrisLines/10)+1);
+    document.getElementById('tetrisLines').textContent=tetrisLines;
+    document.getElementById('tetrisScore').textContent=tetrisScore;
+    document.getElementById('tetrisStatus').textContent=`Nice! ${cleared} line${cleared===1?'':'s'} cleared.`;
+    tetrisBest=Math.max(tetrisBest,tetrisScore);
+    document.getElementById('tetrisBest').textContent=tetrisBest;
+  }
+  spawnTetrisPiece();
+  drawTetrisBoard();
+}
+
+function tickTetris(){
+  if(!moveTetrisPiece(0,1)) lockTetrisPiece();
+}
+
+function hardDropTetris(){
+  if(!tetrisRunning||!tetrisPiece) return;
+  let distance=0;
+  while(!collidesTetris(tetrisPiece.matrix,tetrisPiece.x,tetrisPiece.y+1)){
+    tetrisPiece.y++;
+    distance++;
+  }
+  tetrisScore+=distance*2;
+  document.getElementById('tetrisScore').textContent=tetrisScore;
+  tetrisBest=Math.max(tetrisBest,tetrisScore);
+  document.getElementById('tetrisBest').textContent=tetrisBest;
+  lockTetrisPiece();
+}
+
+function endTetrisGame(){
+  tetrisRunning=false;
+  if(tetrisInterval) clearInterval(tetrisInterval);
+  tetrisInterval=null;
+  document.getElementById('tetrisStatus').textContent=`Game over! Final score: ${tetrisScore}. Tap Play again to restart.`;
+  tetrisCanvas.setAttribute('aria-label',`Tetris game over. Score: ${tetrisScore}.`);
+  drawTetrisBoard();
+}
+
+function handleTetrisAction(action){
+  if(action==='left') moveTetrisPiece(-1,0);
+  else if(action==='right') moveTetrisPiece(1,0);
+  else if(action==='rotate') rotateTetrisPiece();
+  else if(action==='down'&&moveTetrisPiece(0,1)){
+    tetrisScore++;
+    document.getElementById('tetrisScore').textContent=tetrisScore;
+    tetrisBest=Math.max(tetrisBest,tetrisScore);
+    document.getElementById('tetrisBest').textContent=tetrisBest;
+  }else if(action==='drop') hardDropTetris();
+}
+
+document.addEventListener('keydown',event=>{
+  if(document.getElementById('screen-tetris').classList.contains('hidden')) return;
+  const actions={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'rotate',ArrowDown:'down',a:'left',d:'right',w:'rotate',s:'down'};
+  const action=actions[event.key]||actions[event.key.toLowerCase()];
+  if(action){event.preventDefault();handleTetrisAction(action);}
+  else if(event.code==='Space'){event.preventDefault();hardDropTetris();}
+});
+document.querySelectorAll('[data-tetris-action]').forEach(button=>button.addEventListener('click',()=>handleTetrisAction(button.dataset.tetrisAction)));
+document.getElementById('tetrisRestartBtn').addEventListener('click',resetTetrisGame);
+document.getElementById('tetrisBackBtn').addEventListener('click',()=>{
+  if(tetrisInterval) clearInterval(tetrisInterval);
+  tetrisInterval=null;
+  tetrisRunning=false;
+  document.getElementById('screen-tetris').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+});
+
+const simonPads=[...document.querySelectorAll('.simon-pad')];
+
+function startSimonGame(){
+  document.getElementById('screen-select').classList.add('hidden');
+  document.getElementById('screen-simon').classList.remove('hidden');
+  resetSimonGame();
+}
+
+function clearSimonTimeouts(){
+  simonTimeouts.forEach(timeout=>clearTimeout(timeout));
+  simonTimeouts=[];
+  simonPads.forEach(pad=>pad.classList.remove('lit'));
+}
+
+function resetSimonGame(){
+  clearSimonTimeouts();
+  simonSequence=[];
+  simonInputIndex=0;
+  simonLevel=0;
+  simonAccepting=false;
+  document.getElementById('simonLevel').textContent='0';
+  document.getElementById('simonBest').textContent=simonBest;
+  document.getElementById('simonStatus').textContent='Watch the pattern!';
+  document.getElementById('simonStartBtn').textContent='Start game';
+  simonPads.forEach(pad=>pad.disabled=true);
+}
+
+function playSimonSequence(){
+  clearSimonTimeouts();
+  simonAccepting=false;
+  simonInputIndex=0;
+  simonPads.forEach(pad=>pad.disabled=true);
+  document.getElementById('simonStatus').textContent='Watch the pattern…';
+  const interval=480;
+  simonSequence.forEach((padIndex,position)=>{
+    simonTimeouts.push(setTimeout(()=>{
+      simonPads[padIndex].classList.add('lit');
+    },position*interval));
+    simonTimeouts.push(setTimeout(()=>{
+      simonPads[padIndex].classList.remove('lit');
+    },position*interval+230));
+  });
+  simonTimeouts.push(setTimeout(()=>{
+    simonTimeouts=[];
+    simonAccepting=true;
+    simonPads.forEach(pad=>pad.disabled=false);
+    document.getElementById('simonStatus').textContent='Your turn — repeat the pattern!';
+  },simonSequence.length*interval));
+}
+
+function beginSimonSequence(){
+  simonSequence.push(Math.floor(Math.random()*simonPads.length));
+  document.getElementById('simonLevel').textContent=simonSequence.length;
+  playSimonSequence();
+}
+
+function handleSimonPad(padIndex){
+  if(!simonAccepting) return;
+  const isCorrect=simonSequence[simonInputIndex]===padIndex;
+  simonPads[padIndex].classList.add('lit');
+  setTimeout(()=>simonPads[padIndex].classList.remove('lit'),140);
+  if(!isCorrect){
+    simonAccepting=false;
+    simonPads.forEach(pad=>pad.disabled=true);
+    simonBest=Math.max(simonBest,simonSequence.length);
+    document.getElementById('simonBest').textContent=simonBest;
+    document.getElementById('simonStatus').textContent=`Game over! Level ${simonSequence.length}. Press Play again to retry.`;
+    document.getElementById('simonStartBtn').textContent='Play again';
+    return;
+  }
+  simonInputIndex++;
+  if(simonInputIndex===simonSequence.length){
+    simonAccepting=false;
+    simonBest=Math.max(simonBest,simonSequence.length);
+    document.getElementById('simonBest').textContent=simonBest;
+    document.getElementById('simonStatus').textContent='Great memory! Get ready for the next level…';
+    simonTimeouts.push(setTimeout(beginSimonSequence,650));
+  }else{
+    document.getElementById('simonStatus').textContent=`Nice! ${simonInputIndex} of ${simonSequence.length}`;
+  }
+}
+
+simonPads.forEach((pad,index)=>pad.addEventListener('click',()=>handleSimonPad(index)));
+document.getElementById('simonStartBtn').addEventListener('click',()=>{
+  resetSimonGame();
+  document.getElementById('simonStartBtn').textContent='Restart game';
+  beginSimonSequence();
+});
+document.getElementById('simonBackBtn').addEventListener('click',()=>{
+  clearSimonTimeouts();
+  simonAccepting=false;
+  document.getElementById('screen-simon').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+});
+
+const pongCanvas=document.getElementById('pongCanvas');
+const pongContext=pongCanvas.getContext('2d');
+const PONG_PADDLE_WIDTH=11, PONG_PADDLE_HEIGHT=70, PONG_BALL_RADIUS=7, PONG_WIN_SCORE=5;
+
+function startPongGame(){
+  document.getElementById('screen-select').classList.add('hidden');
+  document.getElementById('screen-pong').classList.remove('hidden');
+  resetPongGame();
+}
+
+function resetPongGame(){
+  if(pongInterval) clearInterval(pongInterval);
+  pongKeys.clear();
+  pongState={
+    playerY:pongCanvas.height/2-PONG_PADDLE_HEIGHT/2,
+    computerY:pongCanvas.height/2-PONG_PADDLE_HEIGHT/2,
+    ballX:pongCanvas.width/2,
+    ballY:pongCanvas.height/2,
+    velocityX:210,
+    velocityY:100,
+    playerScore:0,
+    computerScore:0,
+    running:true
+  };
+  updatePongScores();
+  document.getElementById('pongStatus').textContent='First to five points wins. You serve!';
+  drawPongBoard();
+  pongInterval=setInterval(()=>stepPong(1/60),1000/60);
+}
+
+function updatePongScores(){
+  document.getElementById('pongPlayerScore').textContent=pongState.playerScore;
+  document.getElementById('pongComputerScore').textContent=pongState.computerScore;
+}
+
+function drawPongBoard(){
+  if(!pongState) return;
+  const width=pongCanvas.width, height=pongCanvas.height;
+  pongContext.fillStyle='#151B2E';
+  pongContext.fillRect(0,0,width,height);
+  pongContext.setLineDash([8,10]);
+  pongContext.strokeStyle='rgba(255,255,255,.25)';
+  pongContext.lineWidth=2;
+  pongContext.beginPath();
+  pongContext.moveTo(width/2,12);
+  pongContext.lineTo(width/2,height-12);
+  pongContext.stroke();
+  pongContext.setLineDash([]);
+  pongContext.fillStyle='#938BFF';
+  pongContext.beginPath();
+  pongContext.roundRect(16,pongState.playerY,PONG_PADDLE_WIDTH,PONG_PADDLE_HEIGHT,6);
+  pongContext.fill();
+  pongContext.fillStyle='#45C99B';
+  pongContext.beginPath();
+  pongContext.roundRect(width-16-PONG_PADDLE_WIDTH,pongState.computerY,PONG_PADDLE_WIDTH,PONG_PADDLE_HEIGHT,6);
+  pongContext.fill();
+  pongContext.fillStyle='#FFD75E';
+  pongContext.shadowColor='#FFD75E';
+  pongContext.shadowBlur=14;
+  pongContext.beginPath();
+  pongContext.arc(pongState.ballX,pongState.ballY,PONG_BALL_RADIUS,0,Math.PI*2);
+  pongContext.fill();
+  pongContext.shadowBlur=0;
+}
+
+function setPongPlayerPosition(y){
+  if(!pongState||!pongState.running) return;
+  pongState.playerY=Math.max(0,Math.min(pongCanvas.height-PONG_PADDLE_HEIGHT,y-PONG_PADDLE_HEIGHT/2));
+  drawPongBoard();
+}
+
+function scorePongPoint(winner){
+  if(winner==='player') pongState.playerScore++;
+  else pongState.computerScore++;
+  updatePongScores();
+  if(pongState.playerScore>=PONG_WIN_SCORE||pongState.computerScore>=PONG_WIN_SCORE){
+    pongState.running=false;
+    clearInterval(pongInterval);
+    pongInterval=null;
+    document.getElementById('pongStatus').textContent=pongState.playerScore>pongState.computerScore?'You win! Great rally! Press Play again for a rematch.':'Computer wins this round. Try again!';
+    return;
+  }
+  pongState.ballX=pongCanvas.width/2;
+  pongState.ballY=pongCanvas.height/2;
+  pongState.velocityX=winner==='player'?-210:210;
+  pongState.velocityY=(Math.random()-.5)*220;
+}
+
+function stepPong(deltaSeconds){
+  if(!pongState||!pongState.running) return;
+  const dt=Math.min(deltaSeconds,.04), height=pongCanvas.height, width=pongCanvas.width;
+  if(pongKeys.has('ArrowUp')||pongKeys.has('w')) pongState.playerY-=300*dt;
+  if(pongKeys.has('ArrowDown')||pongKeys.has('s')) pongState.playerY+=300*dt;
+  pongState.playerY=Math.max(0,Math.min(height-PONG_PADDLE_HEIGHT,pongState.playerY));
+  const computerTarget=pongState.ballY-PONG_PADDLE_HEIGHT/2;
+  const computerDelta=computerTarget-pongState.computerY;
+  pongState.computerY+=Math.max(-210*dt,Math.min(210*dt,computerDelta));
+  pongState.computerY=Math.max(0,Math.min(height-PONG_PADDLE_HEIGHT,pongState.computerY));
+  pongState.ballX+=pongState.velocityX*dt;
+  pongState.ballY+=pongState.velocityY*dt;
+  if(pongState.ballY-PONG_BALL_RADIUS<0&&pongState.velocityY<0){pongState.ballY=PONG_BALL_RADIUS;pongState.velocityY=Math.abs(pongState.velocityY);}
+  if(pongState.ballY+PONG_BALL_RADIUS>height&&pongState.velocityY>0){pongState.ballY=height-PONG_BALL_RADIUS;pongState.velocityY=-Math.abs(pongState.velocityY);}
+  const playerRight=16+PONG_PADDLE_WIDTH;
+  if(pongState.velocityX<0&&pongState.ballX-PONG_BALL_RADIUS<=playerRight&&pongState.ballX>PONG_BALL_RADIUS&&pongState.ballY>=pongState.playerY&&pongState.ballY<=pongState.playerY+PONG_PADDLE_HEIGHT){
+    pongState.ballX=playerRight+PONG_BALL_RADIUS;
+    pongState.velocityX=Math.min(Math.abs(pongState.velocityX)*1.045,430);
+    pongState.velocityY+=(pongState.ballY-(pongState.playerY+PONG_PADDLE_HEIGHT/2))*4;
+  }
+  const computerLeft=width-16-PONG_PADDLE_WIDTH;
+  if(pongState.velocityX>0&&pongState.ballX+PONG_BALL_RADIUS>=computerLeft&&pongState.ballX<width-PONG_BALL_RADIUS&&pongState.ballY>=pongState.computerY&&pongState.ballY<=pongState.computerY+PONG_PADDLE_HEIGHT){
+    pongState.ballX=computerLeft-PONG_BALL_RADIUS;
+    pongState.velocityX=-Math.min(Math.abs(pongState.velocityX)*1.045,430);
+    pongState.velocityY+=(pongState.ballY-(pongState.computerY+PONG_PADDLE_HEIGHT/2))*3.5;
+  }
+  if(pongState.ballX+PONG_BALL_RADIUS<0) scorePongPoint('computer');
+  else if(pongState.ballX-PONG_BALL_RADIUS>width) scorePongPoint('player');
+  drawPongBoard();
+}
+
+pongCanvas.addEventListener('pointermove',event=>{
+  if(document.getElementById('screen-pong').classList.contains('hidden')) return;
+  const bounds=pongCanvas.getBoundingClientRect();
+  setPongPlayerPosition((event.clientY-bounds.top)*pongCanvas.height/bounds.height);
+});
+document.addEventListener('keydown',event=>{
+  if(document.getElementById('screen-pong').classList.contains('hidden')) return;
+  if(['ArrowUp','ArrowDown','w','W','s','S'].includes(event.key)){
+    event.preventDefault();
+    pongKeys.add(event.key.length===1?event.key.toLowerCase():event.key);
+  }
+});
+document.addEventListener('keyup',event=>pongKeys.delete(event.key.length===1?event.key.toLowerCase():event.key));
+document.getElementById('pongRestartBtn').addEventListener('click',resetPongGame);
+document.getElementById('pongBackBtn').addEventListener('click',()=>{
+  if(pongInterval) clearInterval(pongInterval);
+  pongInterval=null;
+  pongKeys.clear();
+  if(pongState) pongState.running=false;
+  document.getElementById('screen-pong').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+});
+
+const whackHoles=[...document.querySelectorAll('.whack-hole')];
+
+function startWhackRound(){
+  clearInterval(whackTimer);
+  clearInterval(whackSpawnTimer);
+  whackRunning=true;
+  whackScore=0;
+  whackTime=30;
+  whackActiveHole=-1;
+  document.getElementById('whackScore').textContent=whackScore;
+  document.getElementById('whackTime').textContent=whackTime;
+  document.getElementById('whackBest').textContent=whackBest;
+  document.getElementById('whackStatus').textContent='Go! Tap the mole!';
+  whackHoles.forEach(hole=>hole.disabled=false);
+  showWhackMole();
+  whackSpawnTimer=setInterval(showWhackMole,680);
+  whackTimer=setInterval(()=>{
+    whackTime--;
+    document.getElementById('whackTime').textContent=whackTime;
+    if(whackTime<=0) endWhackRound();
+  },1000);
+}
+
+function showWhackMole(){
+  if(!whackRunning) return;
+  const previous=whackActiveHole;
+  let next=Math.floor(Math.random()*whackHoles.length);
+  if(whackHoles.length>1) while(next===previous) next=Math.floor(Math.random()*whackHoles.length);
+  whackActiveHole=next;
+  whackHoles.forEach((hole,index)=>{
+    const active=index===next;
+    hole.classList.toggle('mole',active);
+    hole.textContent=active?'🐹':'';
+    hole.setAttribute('aria-label',active?`Mole in hole ${index+1}`:`Empty hole ${index+1}`);
+  });
+}
+
+function hitWhackHole(index){
+  if(!whackRunning||index!==whackActiveHole) return;
+  whackScore++;
+  whackActiveHole=-1;
+  document.getElementById('whackScore').textContent=whackScore;
+  document.getElementById('whackStatus').textContent=whackScore>=10?'Amazing reflexes! Keep going!':'Nice hit! Keep going!';
+  whackHoles[index].classList.remove('mole');
+  whackHoles[index].textContent='';
+  whackHoles[index].setAttribute('aria-label',`Empty hole ${index+1}`);
+}
+
+function resetWhackGame(){
+  clearInterval(whackTimer);
+  clearInterval(whackSpawnTimer);
+  whackTimer=null;
+  whackSpawnTimer=null;
+  whackRunning=false;
+  whackScore=0;
+  whackTime=30;
+  whackActiveHole=-1;
+  document.getElementById('whackScore').textContent='0';
+  document.getElementById('whackTime').textContent='30';
+  document.getElementById('whackBest').textContent=whackBest;
+  document.getElementById('whackStatus').textContent='Press Start to play!';
+  document.getElementById('whackStartBtn').textContent='Start game';
+  whackHoles.forEach((hole,index)=>{
+    hole.disabled=true;
+    hole.classList.remove('mole');
+    hole.textContent='';
+    hole.setAttribute('aria-label',`Empty hole ${index+1}`);
+  });
+}
+
+function endWhackRound(){
+  whackRunning=false;
+  whackActiveHole=-1;
+  clearInterval(whackTimer);
+  clearInterval(whackSpawnTimer);
+  whackTimer=null;
+  whackSpawnTimer=null;
+  whackBest=Math.max(whackBest,whackScore);
+  document.getElementById('whackBest').textContent=whackBest;
+  document.getElementById('whackStatus').textContent=`Time's up! You caught ${whackScore} mole${whackScore===1?'':'s'}. Play again to beat your best!`;
+  document.getElementById('whackStartBtn').textContent='Play again';
+  whackHoles.forEach(hole=>{hole.disabled=true;hole.classList.remove('mole');hole.textContent='';});
+}
+
+whackHoles.forEach((hole,index)=>hole.addEventListener('click',()=>hitWhackHole(index)));
+document.getElementById('whackStartBtn').addEventListener('click',startWhackRound);
+document.getElementById('whackBackBtn').addEventListener('click',()=>{
+  resetWhackGame();
+  document.getElementById('screen-whack').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+});
+
+function formatTime(seconds){
+  const minutes=Math.floor(seconds/60);
+  const remainingSeconds=seconds%60;
+  return `${String(minutes).padStart(2,'0')}:${String(remainingSeconds).padStart(2,'0')}`;
+}
+
+function updateTimer(){
+  if(document.getElementById('screen-quiz').classList.contains('hidden')) return;
+  const secondsRemaining=Math.max(0,Math.ceil((quizDeadline-Date.now())/1000));
+  const timer=document.getElementById('quizTimer');
+  timer.textContent=formatTime(secondsRemaining);
+  timer.setAttribute('aria-label',`Time remaining: ${Math.floor(secondsRemaining/60)} minutes ${secondsRemaining%60} seconds`);
+  timer.classList.toggle('warning',secondsRemaining<=Math.min(30,Math.ceil(activeTimerDuration*0.2)));
+  if(secondsRemaining===0){
+    clearInterval(timerInterval);
+    timerInterval=null;
+    if(selMode==='rapid' && current<quiz.length-1){
+      timedOutQuestions++;
+      current++;
+      renderQuestion();
+    }else{
+      timerExpired=selMode!=='rapid';
+      if(selMode==='rapid') timedOutQuestions++;
+      showResults();
+    }
+  }
+}
+
+function startTimer(duration){
+  clearInterval(timerInterval);
+  activeTimerDuration=duration;
+  quizDeadline=Date.now()+duration*1000;
+  updateTimer();
+  timerInterval=setInterval(updateTimer,1000);
+}
+
+function renderQuestion(){
+  const item = quiz[current];
+  document.getElementById('qCounter').textContent = `Question ${current+1} of ${quiz.length}`;
+  document.getElementById('progressFill').style.width = (current/quiz.length*100)+'%';
+  document.getElementById('qText').textContent = item.q;
+  const optWrap = document.getElementById('qOptions');
+  optWrap.innerHTML='';
+  item.o.forEach((opt,i)=>{
+    const b=document.createElement('button');
+    b.className='option'; b.type='button'; b.textContent=opt;
+    b.onclick=()=>{
+      answers[current]=i;
+      [...optWrap.children].forEach(c=>c.classList.remove('picked'));
+      b.classList.add('picked');
+      document.getElementById('nextBtn').disabled=false;
+    };
+    if(answers[current]===i) b.classList.add('picked');
+    optWrap.appendChild(b);
+  });
+  document.getElementById('nextBtn').disabled = answers[current]===null;
+  document.getElementById('nextBtn').textContent = current===quiz.length-1 ? 'See results' : 'Next';
+  if(selMode==='rapid') startTimer(RAPID_FIRE_SECONDS);
+  else if(current===0) startTimer(QUIZ_DURATION_SECONDS);
+}
+
+document.getElementById('nextBtn').onclick=()=>{
+  if(current<quiz.length-1){ current++; renderQuestion(); }
+  else { showResults(); }
+};
+
+function showResults(){
+  clearInterval(timerInterval);
+  timerInterval=null;
+  document.getElementById('screen-quiz').classList.add('hidden');
+  document.getElementById('screen-results').classList.remove('hidden');
+  const completionMessage=document.getElementById('completionMessage');
+  const showTimeoutMessage=timerExpired || timedOutQuestions>0;
+  completionMessage.classList.toggle('hidden',!showTimeoutMessage);
+  if(timerExpired) completionMessage.textContent="Time's up. Unanswered questions were marked incorrect.";
+  else if(timedOutQuestions>0) completionMessage.textContent=`Time ran out on ${timedOutQuestions} question${timedOutQuestions===1?'':'s'}. Unanswered questions were marked incorrect.`;
+  let correct=0;
+  quiz.forEach((item,i)=>{ if(answers[i]===item.c) correct++; });
+  const wrong = quiz.length-correct;
+  const pct = Math.round((correct/quiz.length)*100);
+  const score20 = Math.round((correct/quiz.length)*20*10)/10;
+  const numEl = document.getElementById('scoreNum');
+  const startT = performance.now(); const dur=700;
+  function tick(now){
+    const p = Math.min(1,(now-startT)/dur);
+    numEl.textContent = (Math.round(score20*p*10)/10).toFixed( (score20%1!==0) ? 1 : 0 );
+    if(p<1) requestAnimationFrame(tick); else numEl.textContent = score20;
+  }
+  requestAnimationFrame(tick);
+  document.getElementById('correctCount').textContent = correct;
+  document.getElementById('wrongCount').textContent = wrong;
+  document.getElementById('pctCount').textContent = pct+'%';
+
+  const tier = document.getElementById('tierBadge');
+  let label, bg, fg;
+  if(pct>=85){label='🥇 Gold tier';bg='color-mix(in srgb, var(--gold) 20%, transparent)';fg='var(--gold)';}
+  else if(pct>=60){label='🥈 Silver tier';bg='color-mix(in srgb, var(--teal) 20%, transparent)';fg='var(--teal)';}
+  else {label='🥉 Bronze tier';bg='color-mix(in srgb, var(--rust) 20%, transparent)';fg='var(--rust)';}
+  tier.textContent=label; tier.style.background=bg; tier.style.color=fg;
+
+  const breakdown = document.getElementById('breakdown');
+  breakdown.innerHTML='';
+  quiz.forEach((item,i)=>{
+    const ok = answers[i]===item.c;
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`<span class="mark ${ok?'ok':'bad'}">${ok?'✓':'✕'}</span>
+      <div class="body"><div class="q">${item.q}</div>
+      <div class="a">Your answer: ${answers[i]===null?'—':item.o[answers[i]]}${ok?'':' · Correct: '+item.o[item.c]}</div></div>`;
+    breakdown.appendChild(row);
+  });
+}
+
+document.getElementById('retryBtn').onclick=()=>{
+  clearInterval(timerInterval);
+  timerInterval=null;
+  quizDeadline=0;
+  timerExpired=false;
+  timedOutQuestions=0;
+  const timer=document.getElementById('quizTimer');
+  timer.textContent=formatTime(QUIZ_DURATION_SECONDS);
+  timer.setAttribute('aria-label','Time remaining: 5 minutes');
+  timer.classList.remove('warning');
+  document.getElementById('screen-results').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+  selCat=null; selDiff=null;
+  [...categoryGrid.children].forEach(c=>c.classList.remove('selected'));
+  [...diffRow.children].forEach(c=>c.classList.remove('selected'));
+  checkReady();
+};
+</script>
+</body>
+</html>
