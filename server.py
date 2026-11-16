@@ -7,14 +7,20 @@ import os
 ROOT = Path(__file__).resolve().parent
 QUIZ_FILE = ROOT / "allcode"
 
+
+def _is_quiz_route(path: str) -> bool:
+    normalized = urlsplit(path).path.rstrip("/")
+    return normalized in ("", "/allcode")
+
+
 class QuizHandler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
-        if urlsplit(path).path in ("/", "/allcode"):
+        if _is_quiz_route(path):
             return str(QUIZ_FILE)
         return super().translate_path(path)
 
     def guess_type(self, path):
-        if Path(path).name == "allcode":
+        if Path(path).name == "allcode" or _is_quiz_route(path):
             return "text/html; charset=utf-8"
         return super().guess_type(path)
 
